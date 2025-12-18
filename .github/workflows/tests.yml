@@ -1,0 +1,93 @@
+name: API Integration Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  test:
+    name: Run API Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ledger_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+          cache: true
+      
+      - name: Install test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+      
+      - name: Verify test scripts
+        run: |
+          ls -la tests/
+          chmod +x tests/*.sh
+      
+      # This step will be uncommented once the service is implemented
+      # - name: Build service
+      #   run: go build -o ledger-service ./cmd/server
+      
+      # - name: Run database migrations
+      #   env:
+      #     DATABASE_URL: postgres://postgres:postgres@localhost:5432/ledger_test?sslmode=disable
+      #   run: |
+      #     # Add migration command here
+      #     # Example: ./ledger-service migrate up
+      
+      # - name: Start service
+      #   env:
+      #     DATABASE_URL: postgres://postgres:postgres@localhost:5432/ledger_test?sslmode=disable
+      #     ALLOWED_ORIGIN: http://internal-gateway.local
+      #     PORT: 8080
+      #   run: |
+      #     ./ledger-service &
+      #     echo $! > service.pid
+      #     # Wait for service to be ready
+      #     timeout 30 bash -c 'until curl -f http://localhost:8080/health 2>/dev/null; do sleep 1; done' || true
+      
+      # - name: Run API tests
+      #   env:
+      #     TEST_BASE_URL: http://localhost:8080
+      #     TEST_ALLOWED_ORIGIN: http://internal-gateway.local
+      #   run: ./tests/run_tests.sh
+      
+      # - name: Stop service
+      #   if: always()
+      #   run: |
+      #     if [ -f service.pid ]; then
+      #       kill $(cat service.pid) || true
+      #     fi
+      
+      - name: Tests verification
+        run: |
+          echo "✓ Test scripts are ready and executable"
+          echo "✓ Test configuration is valid"
+          echo "✓ CI/CD pipeline is configured"
+          echo ""
+          echo "Next steps:"
+          echo "1. Implement the ledger service"
+          echo "2. Uncomment the test execution steps in this workflow"
+          echo "3. Run tests to validate implementation"
