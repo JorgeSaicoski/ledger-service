@@ -24,11 +24,20 @@ Before you start implementing:
 3. **Set Up Database**
    - Install PostgreSQL 15+
    - Create database: `ledger_test` or `ledger_dev`
-   - Run the DDL from `requirements.md`:
+   - Run the DDL from `requirements.md`. For example:
      ```sql
      CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-     CREATE TABLE transactions (...);
-     CREATE INDEX idx_transactions_user_currency_ts ...;
+     
+     CREATE TABLE transactions (
+       id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+       user_id UUID NOT NULL,
+       amount NUMERIC(20, 8) NOT NULL,
+       currency_code VARCHAR(3) NOT NULL,
+       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+     );
+     
+     CREATE INDEX idx_transactions_user_currency_ts
+       ON transactions (user_id, currency_code, created_at DESC);
      ```
 
 ## TDD Workflow
