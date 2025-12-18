@@ -37,7 +37,10 @@ test_create_transaction_success() {
                [ "$amount" = "100.5" ] && \
                [ "$currency" = "usd" ]; then
                 print_test_result "Create transaction with allowed origin" "PASS"
-                echo "$body" | jq -r '.id'  # Return transaction ID for other tests
+                # Optionally write transaction ID to a file for use by other tests/scripts
+                if [ -n "$TRANSACTION_ID_FILE" ]; then
+                    echo "$body" | jq -r '.id' > "$TRANSACTION_ID_FILE"
+                fi
             else
                 print_test_result "Create transaction with allowed origin" "FAIL" "Response data mismatch"
             fi
