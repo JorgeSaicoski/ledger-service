@@ -73,7 +73,7 @@ get_json_field() {
 
 # Helper function to check if service is running
 check_service_health() {
-    local response=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/health" 2>/dev/null)
+    local response=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL" 2>/dev/null)
     
     if [ -z "$response" ]; then
         echo -e "${RED}ERROR: Cannot connect to service at $BASE_URL${NC}"
