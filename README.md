@@ -161,6 +161,38 @@ When scale requires it (not at 10-20 users):
 - Add caching for balance calculations
 - Add read replicas for query performance
 
+## Testing
+
+This project follows **Test-Driven Development (TDD)** principles. Comprehensive automated tests are available in the `tests/` directory.
+
+### Running Tests
+
+```bash
+# Run all tests
+./tests/run_tests.sh
+
+# Run specific test suite
+./tests/test_create_transaction.sh
+./tests/test_balance.sh
+
+# Run example API calls
+./tests/examples.sh
+```
+
+### Test Coverage
+
+- **28 comprehensive tests** covering all API endpoints
+- Security validation (origin-based access control)
+- Input validation (missing fields, invalid data)
+- Functional tests (negative amounts, multiple currencies)
+- Edge cases (empty results, pagination, decimal precision)
+
+See [tests/README.md](tests/README.md) for detailed documentation.
+
+### CI/CD Integration
+
+Tests are integrated into GitHub Actions workflow (`.github/workflows/tests.yml`). The workflow will automatically run tests on push and pull requests once the service is implemented.
+
 ## For Developers
 
 This service should be understandable in 5 minutes. If it's not, we're doing it wrong.
@@ -169,3 +201,4 @@ This service should be understandable in 5 minutes. If it's not, we're doing it 
 - Four simple endpoints
 - No complex business logic
 - All complexity lives in consuming services
+- **Tests written first** following TDD approach
