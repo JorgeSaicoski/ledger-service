@@ -12,24 +12,24 @@ echo "Base URL: $BASE_URL"
 echo "Allowed Origin: $ALLOWED_ORIGIN"
 echo "========================================="
 
-# Check if service is running (if health endpoint exists)
-# If not, just continue and tests will show connection errors
+# Non-interactive check if service is running (uses endpoint expected in spec)
 echo "Checking service availability..."
-if ! curl -s -o /dev/null -w "%{http_code}" "$BASE_URL" 2>/dev/null; then
+if ! check_service_health; then
     echo -e "${YELLOW}WARNING: Cannot connect to $BASE_URL${NC}"
     echo "Please ensure the ledger service is running before executing tests."
-    echo ""
-    read -p "Do you want to continue anyway? (y/N) " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        echo "Exiting..."
-        exit 1
-    fi
-else
-    echo -e "${GREEN}Service is reachable${NC}"
+    echo "Continuing in best-effort mode; tests may fail if service is down."
 fi
 
 echo ""
+
+# Verify documented test count matches implemented tests (best-effort)
+DOC_TEST_COUNT=28
+# Count functions named test_* in test files
+IMPLEMENTED_TEST_COUNT=$(grep -rhoP "^test_[a-zA-Z0-9_]+\b" "$SCRIPT_DIR" | sort -u | wc -l | tr -d ' ')
+if [ -n "$IMPLEMENTED_TEST_COUNT" ] && [ "$IMPLEMENTED_TEST_COUNT" -ne "$DOC_TEST_COUNT" ]; then
+    echo -e "${YELLOW}NOTE: Test specification documents ${DOC_TEST_COUNT} tests but ${IMPLEMENTED_TEST_COUNT} unique test functions were found.${NC}"
+    echo "Please update TEST_SPECIFICATION.md if this is intentional."
+fi
 
 # Run all test suites
 bash "$SCRIPT_DIR/test_create_transaction.sh"

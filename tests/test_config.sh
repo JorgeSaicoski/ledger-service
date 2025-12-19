@@ -22,6 +22,15 @@ TESTS_RUN=0
 TESTS_PASSED=0
 TESTS_FAILED=0
 
+# Default transaction ID file (used to share created ID between test files)
+# Can be overridden with TRANSACTION_ID_FILE env var
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TRANSACTION_ID_FILE="${TRANSACTION_ID_FILE:-$SCRIPT_DIR/.last_transaction_id}"
+
+# Ensure required tools are available
+command -v curl >/dev/null 2>&1 || { echo -e "${RED}ERROR:${NC} curl is required to run tests"; exit 1; }
+command -v jq >/dev/null 2>&1 || { echo -e "${RED}ERROR:${NC} jq is required to run tests"; exit 1; }
+
 # Helper function to print test results
 print_test_result() {
     local test_name="$1"
@@ -73,8 +82,8 @@ get_json_field() {
 
 # Helper function to check if service is running
 check_service_health() {
-    local response=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL" 2>/dev/null)
-    
+    local response=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/transactions" 2>/dev/null)
+
     if [ -z "$response" ]; then
         echo -e "${RED}ERROR: Cannot connect to service at $BASE_URL${NC}"
         echo "Please ensure the service is running before executing tests."

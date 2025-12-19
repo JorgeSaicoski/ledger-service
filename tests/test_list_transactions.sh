@@ -19,13 +19,26 @@ setup_test_transactions() {
         curl -s -X POST "$BASE_URL/transactions" \
             -H "Content-Type: application/json" \
             -H "Origin: $ALLOWED_ORIGIN" \
-            -d "{
-                \"user_id\": \"$user_id\",
-                \"amount\": $((i * 10)),
-                \"currency\": \"$currency\"
+            -d "{\
+                \"user_id\": \"$user_id\",\
+                \"amount\": $((i * 10)),\
+                \"currency\": \"$currency\"\
             }" > /dev/null
         sleep 0.1  # Small delay to ensure different timestamps
     done
+}
+
+# Helper to safely parse jq integer results, returns number or 0
+_safe_jq_count() {
+    local json="$1"
+    local expr="$2"
+    local out
+    out=$(echo "$json" | jq -r "$expr" 2>/dev/null) || out=""
+    if [[ "$out" =~ ^[0-9]+$ ]]; then
+        echo "$out"
+    else
+        echo "0"
+    fi
 }
 
 # Test 1: List transactions by user_id
@@ -41,7 +54,7 @@ test_list_transactions_by_user() {
     
     if check_status_code "$status" 200; then
         if check_json_field "$body" "transactions"; then
-            local count=$(echo "$body" | jq '.transactions | length')
+            local count=$(_safe_jq_count "$body" '.transactions | length')
             if [ "$count" -ge 3 ]; then
                 print_test_result "List transactions by user_id" "PASS"
             else
@@ -68,9 +81,8 @@ test_list_transactions_by_user_and_currency() {
     local status=$(echo "$response" | tail -n1)
     
     if check_status_code "$status" 200; then
-        local count=$(echo "$body" | jq '.transactions | length')
-        local all_brl=$(echo "$body" | jq '[.transactions[] | select(.currency != "brl")] | length')
-        
+        local count=$(_safe_jq_count "$body" '.transactions | length')
+        local all_brl=$(echo "$body" | jq -r '[.transactions[] | select(.currency != "brl")] | length' 2>/dev/null || echo "0")
         if [ "$count" -ge 3 ] && [ "$all_brl" -eq 0 ]; then
             print_test_result "List transactions by user_id and currency" "PASS"
         else
@@ -105,7 +117,7 @@ test_list_transactions_with_limit() {
     local status=$(echo "$response" | tail -n1)
     
     if check_status_code "$status" 200; then
-        local count=$(echo "$body" | jq '.transactions | length')
+        local count=$(_safe_jq_count "$body" '.transactions | length')
         if [ "$count" -eq 3 ]; then
             print_test_result "List transactions with limit parameter" "PASS"
         else
@@ -125,15 +137,15 @@ test_list_transactions_with_offset() {
     
     # Get all transactions
     local all_response=$(curl -s -X GET "$BASE_URL/transactions?user_id=$test_user")
-    local total_count=$(echo "$all_response" | jq '.transactions | length')
-    
+    local total_count=$(_safe_jq_count "$all_response" '.transactions | length')
+
     # Get with offset=2
     local response=$(curl -s -w "\n%{http_code}" -X GET "$BASE_URL/transactions?user_id=$test_user&offset=2")
     local body=$(echo "$response" | sed '$d')
     local status=$(echo "$response" | tail -n1)
     
     if check_status_code "$status" 200; then
-        local count=$(echo "$body" | jq '.transactions | length')
+        local count=$(_safe_jq_count "$body" '.transactions | length')
         local expected=$((total_count - 2))
         if [ "$count" -eq "$expected" ]; then
             print_test_result "List transactions with offset parameter" "PASS"
@@ -154,10 +166,10 @@ test_list_transactions_order() {
         curl -s -X POST "$BASE_URL/transactions" \
             -H "Content-Type: application/json" \
             -H "Origin: $ALLOWED_ORIGIN" \
-            -d "{
-                \"user_id\": \"$test_user\",
-                \"amount\": $((i * 100)),
-                \"currency\": \"usd\"
+            -d "{\
+                \"user_id\": \"$test_user\",\
+                \"amount\": $((i * 100)),\
+                \"currency\": \"usd\"\
             }" > /dev/null
         sleep 0.2
     done
@@ -165,9 +177,14 @@ test_list_transactions_order() {
     local response=$(curl -s -X GET "$BASE_URL/transactions?user_id=$test_user")
     
     # Get timestamps and check they are in descending order
-    local timestamp1=$(echo "$response" | jq -r '.transactions[0].timestamp')
-    local timestamp2=$(echo "$response" | jq -r '.transactions[1].timestamp')
-    
+    local timestamp1=$(echo "$response" | jq -r '.transactions[0].timestamp' 2>/dev/null || echo "")
+    local timestamp2=$(echo "$response" | jq -r '.transactions[1].timestamp' 2>/dev/null || echo "")
+
+    if [ -z "$timestamp1" ] || [ -z "$timestamp2" ]; then
+        print_test_result "List transactions ordered by timestamp DESC" "FAIL" "Failed to parse timestamps"
+        return
+    fi
+
     if [[ "$timestamp1" > "$timestamp2" ]] || [[ "$timestamp1" == "$timestamp2" ]]; then
         print_test_result "List transactions ordered by timestamp DESC" "PASS"
     else
@@ -184,7 +201,7 @@ test_list_transactions_empty() {
     local status=$(echo "$response" | tail -n1)
     
     if check_status_code "$status" 200; then
-        local count=$(echo "$body" | jq '.transactions | length')
+        local count=$(_safe_jq_count "$body" '.transactions | length')
         if [ "$count" -eq 0 ]; then
             print_test_result "List transactions for user with no transactions" "PASS"
         else

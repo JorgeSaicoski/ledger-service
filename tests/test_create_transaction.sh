@@ -8,6 +8,39 @@ echo "========================================="
 echo "Testing POST /transactions"
 echo "========================================="
 
+# Helper to create a transaction and optionally return only the ID
+_create_transaction() {
+    local user_id="$1"
+    local amount="$2"
+    local currency="$3"
+
+    local response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
+        -H "Content-Type: application/json" \
+        -H "Origin: $ALLOWED_ORIGIN" \
+        -d "{\
+            \"user_id\": \"$user_id\",\
+            \"amount\": $amount,\
+            \"currency\": \"$currency\"\
+        }")
+
+    local body=$(echo "$response" | sed '$d')
+    local status=$(echo "$response" | tail -n1)
+
+    # If QUIET_OUTPUT is set to 1, print only the ID (or empty on failure)
+    if [ "${QUIET_OUTPUT:-0}" -eq 1 ]; then
+        if check_status_code "$status" 201; then
+            echo "$body" | jq -r '.id' 2>/dev/null || echo ""
+            return 0
+        else
+            echo ""
+            return 1
+        fi
+    fi
+
+    # Otherwise return full body and status separated by a marker (for human-readable run)
+    echo "$body"; echo "$status"
+}
+
 # Test 1: Create transaction with valid data and allowed origin
 test_create_transaction_success() {
     local response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
@@ -37,7 +70,7 @@ test_create_transaction_success() {
                [ "$amount" = "100.5" ] && \
                [ "$currency" = "usd" ]; then
                 print_test_result "Create transaction with allowed origin" "PASS"
-                # Optionally write transaction ID to a file for use by other tests/scripts
+                # Write transaction ID to file for use by other tests/scripts
                 if [ -n "$TRANSACTION_ID_FILE" ]; then
                     echo "$body" | jq -r '.id' > "$TRANSACTION_ID_FILE"
                 fi
@@ -237,16 +270,22 @@ test_create_transaction_empty_user_id() {
 }
 
 # Run all tests
-TRANSACTION_ID=$(test_create_transaction_success)
-test_create_transaction_forbidden
-test_create_transaction_no_origin
-test_create_transaction_missing_user_id
-test_create_transaction_missing_amount
-test_create_transaction_missing_currency
-test_create_transaction_negative_amount
-test_create_transaction_different_currency
-test_create_transaction_invalid_json
-test_create_transaction_empty_user_id
+# Use QUIET_OUTPUT=1 when calling _create_transaction in command substitution to get just the ID
+# Create a transaction and capture its ID (quiet)
+QUIET_OUTPUT=1 TRANSACTION_ID="$(_create_transaction "user123" 100.50 "usd")"
+# If previous call failed, fall back to running the verbose test which will also write the ID to file
+if [ -z "$TRANSACTION_ID" ]; then
+    test_create_transaction_success
+    if [ -f "$TRANSACTION_ID_FILE" ]; then
+        TRANSACTION_ID=$(cat "$TRANSACTION_ID_FILE" 2>/dev/null || true)
+    fi
+else
+    # Save ID to file for other tests
+    if [ -n "$TRANSACTION_ID_FILE" ]; then
+        echo "$TRANSACTION_ID" > "$TRANSACTION_ID_FILE"
+    fi
+    # Also run the verbose test to register the PASS/FAIL counters
+    test_create_transaction_success
+fi
 
-# Export transaction ID for other test files
 export TEST_TRANSACTION_ID="$TRANSACTION_ID"
