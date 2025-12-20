@@ -1,7 +1,6 @@
 package validator
 
 import (
-	"math"
 	"testing"
 
 	"github.com/bardockgaucho/ledger-service/internal/models"
@@ -14,7 +13,7 @@ func TestValidateTransactionRequest_Success(t *testing.T) {
 
 	req := models.TransactionRequest{
 		UserID:   "user123",
-		Amount:   100.50,
+		Amount:   10050,
 		Currency: "usd",
 	}
 
@@ -28,7 +27,7 @@ func TestValidateTransactionRequest_EmptyUserID(t *testing.T) {
 
 	req := models.TransactionRequest{
 		UserID:   "",
-		Amount:   100.50,
+		Amount:   10050,
 		Currency: "usd",
 	}
 
@@ -42,7 +41,7 @@ func TestValidateTransactionRequest_EmptyCurrency(t *testing.T) {
 
 	req := models.TransactionRequest{
 		UserID:   "user123",
-		Amount:   100.50,
+		Amount:   10050,
 		Currency: "",
 	}
 
@@ -56,7 +55,7 @@ func TestValidateTransactionRequest_NegativeAmount(t *testing.T) {
 
 	req := models.TransactionRequest{
 		UserID:   "user123",
-		Amount:   -50.25,
+		Amount:   -5025,
 		Currency: "usd",
 	}
 
@@ -141,41 +140,6 @@ func TestValidateCurrency_InvalidCharacters(t *testing.T) {
 	for _, currency := range invalidCurrencies {
 		err := validator.validateCurrency(currency)
 		assert.ErrorIs(t, err, ErrCurrencyInvalid, "Currency '%s' should be invalid", currency)
-	}
-}
-
-// TestValidateAmount_Valid tests valid amounts
-func TestValidateAmount_Valid(t *testing.T) {
-	validator := NewTransactionValidator()
-
-	validAmounts := []float64{
-		100.50,
-		-75.25,
-		0,
-		0.01,
-		-0.01,
-		999999.99,
-	}
-
-	for _, amount := range validAmounts {
-		err := validator.validateAmount(amount)
-		assert.NoError(t, err, "Amount %f should be valid", amount)
-	}
-}
-
-// TestValidateAmount_Invalid tests invalid amounts
-func TestValidateAmount_Invalid(t *testing.T) {
-	validator := NewTransactionValidator()
-
-	invalidAmounts := []float64{
-		math.NaN(),
-		math.Inf(1),
-		math.Inf(-1),
-	}
-
-	for _, amount := range invalidAmounts {
-		err := validator.validateAmount(amount)
-		assert.ErrorIs(t, err, ErrAmountInvalid, "Amount %f should be invalid", amount)
 	}
 }
 

@@ -42,9 +42,6 @@ func (v *TransactionValidator) ValidateTransactionRequest(req models.Transaction
 	if err := v.validateCurrency(req.Currency); err != nil {
 		return err
 	}
-	if err := v.validateAmount(req.Amount); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -58,16 +55,11 @@ func (v *TransactionValidator) validateUserID(userID string) error {
 
 // ValidateCurrency validates currency format
 func (v *TransactionValidator) validateCurrency(currency string) error {
-	if currency == "" || !v.currencyRegex.MatchString(currency) {
+	if currency == "" {
 		return ErrCurrencyEmpty
 	}
-	return nil
-}
-
-// ValidateAmount validates amount is a valid number
-func (v *TransactionValidator) validateAmount(amount float64) error {
-	if amount == 0 {
-		return ErrAmountInvalid
+	if !v.currencyRegex.MatchString(currency) {
+		return ErrCurrencyInvalid
 	}
 	return nil
 }

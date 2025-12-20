@@ -6,16 +6,16 @@ import "time"
 type Transaction struct {
 	ID        string    `json:"id"`
 	UserID    string    `json:"user_id"`
-	Amount    float64   `json:"amount"`
+	Amount    int       `json:"amount"`
 	Currency  string    `json:"currency"`
 	Timestamp time.Time `json:"timestamp"`
 }
 
 // TransactionRequest represents the request body for creating a transaction
 type TransactionRequest struct {
-	UserID   string  `json:"user_id"`
-	Amount   float64 `json:"amount"`
-	Currency string  `json:"currency"`
+	UserID   string `json:"user_id"`
+	Amount   int    `json:"amount"`
+	Currency string `json:"currency"`
 }
 
 // TransactionListResponse represents the response for listing transactions
@@ -25,9 +25,9 @@ type TransactionListResponse struct {
 
 // BalanceResponse represents the balance for a single currency
 type BalanceResponse struct {
-	UserID   string  `json:"user_id"`
-	Currency string  `json:"currency"`
-	Balance  float64 `json:"balance"`
+	UserID   string `json:"user_id"`
+	Currency string `json:"currency"`
+	Balance  int    `json:"balance"`
 }
 
 // AllBalancesResponse represents all balances for a user
@@ -38,8 +38,8 @@ type AllBalancesResponse struct {
 
 // CurrencyBalance represents a balance for a specific currency
 type CurrencyBalance struct {
-	Currency string  `json:"currency"`
-	Balance  float64 `json:"balance"`
+	Currency string `json:"currency"`
+	Balance  int    `json:"balance"`
 }
 
 // ErrorResponse represents an error response
