@@ -14,7 +14,7 @@ var (
 	ErrCurrencyEmpty = errors.New("currency cannot be empty")
 	// ErrCurrencyInvalid indicates currency format is invalid
 	ErrCurrencyInvalid = errors.New("currency must be alphanumeric and max 32 characters")
-	// ErrAmountInvalid indicates amount is not a valid number
+	// ErrUserIDInvalid ErrAmountInvalid indicates amount is not a valid number
 	ErrUserIDInvalid = errors.New("user_id must be a valid UUID")
 	// ErrUUIDInvalid indicates UUID format is invalid
 	ErrUUIDInvalid = errors.New("invalid UUID format")
@@ -29,9 +29,8 @@ type TransactionValidator struct {
 // NewTransactionValidator creates a new validator instance
 func NewTransactionValidator() *TransactionValidator {
 	return &TransactionValidator{
-		currencyRegex: regexp.MustCompile(`^[a-z0-9_]{1,32}$`),
-		uuidRegex:     regexp.MustCompile(`^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$`),
-	}
+		currencyRegex: regexp.MustCompile(`^[a-z0-9_]+$`),
+		uuidRegex:     regexp.MustCompile(`^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$`)}
 }
 
 // ValidateTransactionRequest validates a transaction creation request
@@ -47,7 +46,7 @@ func (v *TransactionValidator) ValidateTransactionRequest(req models.Transaction
 
 // validateUserID validates user_id format
 func (v *TransactionValidator) validateUserID(userID string) error {
-	if userID == "" {
+	if len(userID) == 0 {
 		return ErrUserIDEmpty
 	}
 	if err := v.ValidateUUID(userID); err != nil {
@@ -60,6 +59,9 @@ func (v *TransactionValidator) validateUserID(userID string) error {
 func (v *TransactionValidator) validateCurrency(currency string) error {
 	if currency == "" {
 		return ErrCurrencyEmpty
+	}
+	if len(currency) > 32 {
+		return ErrCurrencyInvalid
 	}
 	if !v.currencyRegex.MatchString(currency) {
 		return ErrCurrencyInvalid

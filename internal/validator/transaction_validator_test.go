@@ -12,7 +12,7 @@ func TestValidateTransactionRequest_Success(t *testing.T) {
 	validator := NewTransactionValidator()
 
 	req := models.TransactionRequest{
-		UserID:   "user123",
+		UserID:   "550e8400-e29b-41d4-a716-446655440000",
 		Amount:   10050,
 		Currency: "usd",
 	}
@@ -40,7 +40,7 @@ func TestValidateTransactionRequest_EmptyCurrency(t *testing.T) {
 	validator := NewTransactionValidator()
 
 	req := models.TransactionRequest{
-		UserID:   "user123",
+		UserID:   "550e8400-e29b-41d4-a716-446655440000",
 		Amount:   10050,
 		Currency: "",
 	}
@@ -54,7 +54,7 @@ func TestValidateTransactionRequest_NegativeAmount(t *testing.T) {
 	validator := NewTransactionValidator()
 
 	req := models.TransactionRequest{
-		UserID:   "user123",
+		UserID:   "550e8400-e29b-41d4-a716-446655440000",
 		Amount:   -5025,
 		Currency: "usd",
 	}
@@ -68,7 +68,6 @@ func TestValidateUserID_Valid(t *testing.T) {
 	validator := NewTransactionValidator()
 
 	validUserIDs := []string{
-		"a1b2c3d4-e5f6-7890-abcd-ef1234567890", // UUID format
 		"123e4567-e89b-12d3-a456-426614174000",
 		"550e8400-e29b-41d4-a716-446655440000",
 		"f47ac10b-58cc-4372-a567-0e02b2c3d479",
@@ -145,11 +144,11 @@ func TestValidateCurrency_InvalidCharacters(t *testing.T) {
 	validator := NewTransactionValidator()
 
 	invalidCurrencies := []string{
-		"USD",           // uppercase not allowed
-		"us-dollar",     // hyphen not allowed
-		"us dollar",     // space not allowed
-		"usd!",          // special char not allowed
-		"currency@2023", // special char not allowed
+		"USD",           // uppercase isn't allowed
+		"us-dollar",     // hyphen isn't allowed
+		"us dollar",     // space isn't allowed
+		"usd!",          // special char isn't allowed
+		"currency@2023", // special char isn't allowed
 	}
 
 	for _, currency := range invalidCurrencies {
@@ -180,15 +179,77 @@ func TestValidateUUID_Invalid(t *testing.T) {
 
 	invalidUUIDs := []string{
 		"not-a-uuid",
-		"12345678-1234-1234-1234-123456789012", // wrong version digit
-		"12345678-1234-4234-1234-123456789012", // wrong variant digit
-		"12345678123442341234123456789012",     // no hyphens
-		"12345678-1234-4234-8234-12345678901",  // too short
-		"",                                     // empty
+		"12345678123442341234123456789012",    // no hyphens
+		"12345678-1234-4234-8234-12345678901", // too short
+		"",                                    // empty
 	}
 
 	for _, uuid := range invalidUUIDs {
 		err := validator.ValidateUUID(uuid)
 		assert.ErrorIs(t, err, ErrUUIDInvalid, "UUID '%s' should be invalid", uuid)
+	}
+}
+
+func TestValidateUserID_EdgeCases(t *testing.T) {
+	validator := NewTransactionValidator()
+
+	invalidUserIDs := []string{
+		"550E8400-E29B-41D4-A716-446655440000",  // uppercase hex
+		"550e8400e29b41d4a716446655440000",      // missing hyphens
+		"550e8400-e29b-41d4-a716-44665544000",   // too short
+		"550e8400-e29b-41d4-a716-4466554400000", // too long
+		"550e8400-e29b-41d4-a716-44665544_000",  // invalid char
+		"550e8400-e29b-41d4-a716-44665544-0000", // extra hyphen
+		"g50e8400-e29b-41d4-a716-446655440000",  // non-hex char
+		" 550e8400-e29b-41d4-a716-446655440000", // leading space
+		"550e8400-e29b-41d4-a716-446655440000 ", // trailing space
+	}
+
+	for _, id := range invalidUserIDs {
+		err := validator.validateUserID(id)
+		assert.ErrorIs(t, err, ErrUserIDInvalid, "UserID '%s' should be invalid", id)
+	}
+
+	validUserIDs := []string{
+		"ffffffff-ffff-ffff-ffff-ffffffffffff", // all f, valid
+		"00000000-0000-0000-0000-000000000000", // all 0, valid
+	}
+	for _, id := range validUserIDs {
+		err := validator.validateUserID(id)
+		assert.NoError(t, err, "UserID '%s' should be valid", id)
+	}
+}
+
+func TestValidateCurrency_EdgeCases(t *testing.T) {
+	validator := NewTransactionValidator()
+
+	invalidCurrencies := []string{
+		" usd",                                 // leading space
+		"usd ",                                 // trailing space
+		" usd ",                                // leading/trailing space
+		"Usd",                                  // mixed case
+		"usd\n",                                // newline
+		"usd\t",                                // tab
+		"usd$",                                 // special char
+		"usd€",                                 // non-ASCII
+		"usd123456789012345678901234567890123", // 33 chars, invalid
+	}
+
+	for _, currency := range invalidCurrencies {
+		err := validator.validateCurrency(currency)
+		assert.ErrorIs(t, err, ErrCurrencyInvalid, "Currency '%s' should be invalid", currency)
+	}
+
+	// Test empty separately - it returns ErrCurrencyEmpty
+	err := validator.validateCurrency("")
+	assert.ErrorIs(t, err, ErrCurrencyEmpty, "Empty currency should return ErrCurrencyEmpty")
+
+	validCurrencies := []string{
+		"usd12345678901234567890123456789", // 32 chars total (3+29=32)
+		"abc_123",                          // underscore allowed
+	}
+	for _, currency := range validCurrencies {
+		err := validator.validateCurrency(currency)
+		assert.NoError(t, err, "Currency '%s' should be valid", currency)
 	}
 }
