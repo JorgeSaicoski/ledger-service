@@ -14,7 +14,6 @@ test_get_transaction_by_id() {
     # First, create a transaction to retrieve
     local create_response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
-        -H "Origin: $ALLOWED_ORIGIN" \
         -d '{
             "user_id": "test_user_get",
             "amount": 250.75,
@@ -88,7 +87,6 @@ test_get_transaction_data_integrity() {
     # Create a transaction with specific data
     local create_response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
-        -H "Origin: $ALLOWED_ORIGIN" \
         -d '{
             "user_id": "integrity_test",
             "amount": 99.99,

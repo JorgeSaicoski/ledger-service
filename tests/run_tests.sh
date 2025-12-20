@@ -9,7 +9,6 @@ echo "========================================="
 echo "Ledger Service API Test Suite"
 echo "========================================="
 echo "Base URL: $BASE_URL"
-echo "Allowed Origin: $ALLOWED_ORIGIN"
 echo "========================================="
 
 # Non-interactive check if service is running (uses endpoint expected in spec)

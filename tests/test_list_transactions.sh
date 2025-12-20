@@ -18,7 +18,6 @@ setup_test_transactions() {
     for i in $(seq 1 $count); do
         curl -s -X POST "$BASE_URL/transactions" \
             -H "Content-Type: application/json" \
-            -H "Origin: $ALLOWED_ORIGIN" \
             -d "{\
                 \"user_id\": \"$user_id\",\
                 \"amount\": $((i * 10)),\
@@ -165,7 +164,6 @@ test_list_transactions_order() {
     for i in 1 2 3; do
         curl -s -X POST "$BASE_URL/transactions" \
             -H "Content-Type: application/json" \
-            -H "Origin: $ALLOWED_ORIGIN" \
             -d "{\
                 \"user_id\": \"$test_user\",\
                 \"amount\": $((i * 100)),\

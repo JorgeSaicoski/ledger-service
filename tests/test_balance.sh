@@ -16,7 +16,6 @@ setup_balance_transactions() {
     # Create USD transactions
     curl -s -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
-        -H "Origin: $ALLOWED_ORIGIN" \
         -d "{\
             \"user_id\": \"$user_id\",\
             \"amount\": 100.00,\
@@ -25,7 +24,6 @@ setup_balance_transactions() {
     
     curl -s -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
-        -H "Origin: $ALLOWED_ORIGIN" \
         -d "{\
             \"user_id\": \"$user_id\",\
             \"amount\": -30.00,\
@@ -34,7 +32,6 @@ setup_balance_transactions() {
     
     curl -s -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
-        -H "Origin: $ALLOWED_ORIGIN" \
         -d "{\
             \"user_id\": \"$user_id\",\
             \"amount\": 50.00,\
@@ -44,7 +41,6 @@ setup_balance_transactions() {
     # Create BRL transactions
     curl -s -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
-        -H "Origin: $ALLOWED_ORIGIN" \
         -d "{\
             \"user_id\": \"$user_id\",\
             \"amount\": 200.00,\
@@ -53,7 +49,6 @@ setup_balance_transactions() {
     
     curl -s -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
-        -H "Origin: $ALLOWED_ORIGIN" \
         -d "{\
             \"user_id\": \"$user_id\",\
             \"amount\": -50.00,\
@@ -63,7 +58,6 @@ setup_balance_transactions() {
     # Create loyalty_points transactions
     curl -s -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
-        -H "Origin: $ALLOWED_ORIGIN" \
         -d "{\
             \"user_id\": \"$user_id\",\
             \"amount\": 1000,\
@@ -223,7 +217,6 @@ test_get_balance_negative_only() {
     
     curl -s -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
-        -H "Origin: $ALLOWED_ORIGIN" \
         -d "{\
             \"user_id\": \"$test_user\",\
             \"amount\": -50.00,\
@@ -232,7 +225,6 @@ test_get_balance_negative_only() {
     
     curl -s -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
-        -H "Origin: $ALLOWED_ORIGIN" \
         -d "{\
             \"user_id\": \"$test_user\",\
             \"amount\": -25.00,\
@@ -262,7 +254,6 @@ test_get_balance_decimal_precision() {
     
     curl -s -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
-        -H "Origin: $ALLOWED_ORIGIN" \
         -d "{\
             \"user_id\": \"$test_user\",\
             \"amount\": 100.55,\
@@ -271,7 +262,6 @@ test_get_balance_decimal_precision() {
     
     curl -s -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
-        -H "Origin: $ALLOWED_ORIGIN" \
         -d "{\
             \"user_id\": \"$test_user\",\
             \"amount\": 50.33,\
@@ -280,7 +270,6 @@ test_get_balance_decimal_precision() {
     
     curl -s -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
-        -H "Origin: $ALLOWED_ORIGIN" \
         -d "{\
             \"user_id\": \"$test_user\",\
             \"amount\": -25.12,\

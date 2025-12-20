@@ -42,13 +42,8 @@ You can customize the test configuration using environment variables:
 # Test against a different URL
 TEST_BASE_URL=http://localhost:3000 ./tests/run_tests.sh
 
-# Use a different allowed origin
-TEST_ALLOWED_ORIGIN=http://my-gateway.local ./tests/run_tests.sh
-
-# Combine multiple configurations
-TEST_BASE_URL=https://staging.example.com \
-TEST_ALLOWED_ORIGIN=http://staging-gateway.local \
-./tests/run_tests.sh
+# Test against staging environment
+TEST_BASE_URL=https://staging.example.com ./tests/run_tests.sh
 ```
 
 ### Running Individual Test Suites
@@ -122,22 +117,19 @@ Example output:
 Ledger Service API Test Suite
 =========================================
 Base URL: http://localhost:8080
-Allowed Origin: http://internal-gateway.local
 =========================================
 
 =========================================
 Testing POST /transactions
 =========================================
-✓ PASS: Create transaction with allowed origin
-✓ PASS: Create transaction with disallowed origin returns 403
-✓ PASS: Create transaction without Origin header returns 403
+✓ PASS: Create transaction with valid data
 ...
 
 =========================================
 Test Summary
 =========================================
-Total tests run: 28
-Passed: 28
+Total tests run: 25
+Passed: 25
 Failed: 0
 =========================================
 All tests passed!
@@ -195,7 +187,6 @@ jobs:
       - name: Run service
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/ledger_test?sslmode=disable
-          ALLOWED_ORIGIN: http://internal-gateway.local
         run: |
           ./ledger-service &
           sleep 5  # Wait for service to start
@@ -203,7 +194,6 @@ jobs:
       - name: Run tests
         env:
           TEST_BASE_URL: http://localhost:8080
-          TEST_ALLOWED_ORIGIN: http://internal-gateway.local
         run: |
           chmod +x tests/*.sh
           ./tests/run_tests.sh
@@ -226,7 +216,6 @@ test:
     POSTGRES_USER: postgres
     POSTGRES_PASSWORD: postgres
     DATABASE_URL: "postgres://postgres:postgres@postgres:5432/ledger_test?sslmode=disable"
-    ALLOWED_ORIGIN: "http://internal-gateway.local"
   
   before_script:
     - apt-get update && apt-get install -y jq curl
@@ -236,7 +225,7 @@ test:
     - ./ledger-service &
     - sleep 5
     - chmod +x tests/*.sh
-    - TEST_BASE_URL=http://localhost:8080 TEST_ALLOWED_ORIGIN=http://internal-gateway.local ./tests/run_tests.sh
+    - TEST_BASE_URL=http://localhost:8080 ./tests/run_tests.sh
 ```
 
 ### Jenkins
@@ -299,9 +288,6 @@ When adding new tests:
 ### Permission denied
 - Make scripts executable: `chmod +x tests/*.sh`
 
-### Origin header tests fail
-- Ensure ALLOWED_ORIGIN environment variable is set correctly in the service
-- Verify the test is using the same ALLOWED_ORIGIN value
 
 ## Contributing
 

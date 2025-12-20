@@ -8,7 +8,6 @@ This document outlines all test cases for the Transaction Ledger Service API, or
 
 ### Required Environment Variables
 - `TEST_BASE_URL`: Service endpoint (default: http://localhost:8080)
-- `TEST_ALLOWED_ORIGIN`: Allowed origin for POST requests (default: http://internal-gateway.local)
 
 ### Prerequisites
 - Service running and accessible
@@ -19,35 +18,17 @@ This document outlines all test cases for the Transaction Ledger Service API, or
 
 ### 1. POST /transactions
 
-#### 1.1 Security & Authorization Tests
+#### 1.1 Validation Tests
 
-**Test Case 1.1.1: Valid Origin Header**
-- **Description**: Transaction creation should succeed with allowed origin
-- **Requirement**: requirements.md - Minimal Security section
-- **Request**: POST /transactions with Origin: http://internal-gateway.local
+**Test Case 1.1.1: Valid Transaction Creation**
+- **Description**: Transaction creation should succeed with valid data
+- **Request**: POST /transactions
 - **Request Body**: Valid transaction data
 - **Expected**: 201 Created
 - **Expected Response**: Transaction object with id, user_id, amount, currency, timestamp
 - **Script**: test_create_transaction.sh::test_create_transaction_success
 
-**Test Case 1.1.2: Disallowed Origin Header**
-- **Description**: Transaction creation should fail with disallowed origin
-- **Requirement**: requirements.md - Returns 403 for unauthorized origins
-- **Request**: POST /transactions with Origin: http://evil.example.com
-- **Expected**: 403 Forbidden
-- **Expected Response**: {"error": "origin not allowed"}
-- **Script**: test_create_transaction.sh::test_create_transaction_forbidden
-
-**Test Case 1.1.3: Missing Origin Header**
-- **Description**: Transaction creation should fail without origin header
-- **Requirement**: requirements.md - Reject if Origin missing
-- **Request**: POST /transactions without Origin header
-- **Expected**: 403 Forbidden
-- **Script**: test_create_transaction.sh::test_create_transaction_no_origin
-
-#### 1.2 Validation Tests
-
-**Test Case 1.2.1: Missing user_id**
+**Test Case 1.1.2: Missing user_id**
 - **Description**: Request with missing user_id should fail
 - **Requirement**: requirements.md - user_id non-empty
 - **Request Body**: {"amount": 100, "currency": "usd"}

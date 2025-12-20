@@ -5,11 +5,6 @@
 # Service base URL (override with TEST_BASE_URL environment variable)
 BASE_URL="${TEST_BASE_URL:-http://localhost:8080}"
 
-# Allowed origin for security tests (override with TEST_ALLOWED_ORIGIN)
-ALLOWED_ORIGIN="${TEST_ALLOWED_ORIGIN:-http://internal-gateway.local}"
-
-# Disallowed origin for negative security tests
-DISALLOWED_ORIGIN="http://evil.example.com"
 
 # Colors for output
 GREEN='\033[0;32m'

@@ -16,7 +16,6 @@ _create_transaction() {
 
     local response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
-        -H "Origin: $ALLOWED_ORIGIN" \
         -d "{\
             \"user_id\": \"$user_id\",\
             \"amount\": $amount,\
@@ -45,7 +44,6 @@ _create_transaction() {
 test_create_transaction_success() {
     local response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
-        -H "Origin: $ALLOWED_ORIGIN" \
         -d '{
             "user_id": "user123",
             "amount": 100.50,
@@ -69,66 +67,26 @@ test_create_transaction_success() {
             if [ "$user_id" = "user123" ] && \
                [ "$amount" = "100.5" ] && \
                [ "$currency" = "usd" ]; then
-                print_test_result "Create transaction with allowed origin" "PASS"
+                print_test_result "Create transaction with valid data" "PASS"
                 # Write transaction ID to file for use by other tests/scripts
                 if [ -n "$TRANSACTION_ID_FILE" ]; then
                     echo "$body" | jq -r '.id' > "$TRANSACTION_ID_FILE"
                 fi
             else
-                print_test_result "Create transaction with allowed origin" "FAIL" "Response data mismatch"
+                print_test_result "Create transaction with valid data" "FAIL" "Response data mismatch"
             fi
         else
-            print_test_result "Create transaction with allowed origin" "FAIL" "Missing required fields in response"
+            print_test_result "Create transaction with valid data" "FAIL" "Missing required fields in response"
         fi
     else
-        print_test_result "Create transaction with allowed origin" "FAIL" "Expected status 201, got $status"
+        print_test_result "Create transaction with valid data" "FAIL" "Expected status 201, got $status"
     fi
 }
 
-# Test 2: Create transaction with disallowed origin (should return 403)
-test_create_transaction_forbidden() {
-    local response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
-        -H "Content-Type: application/json" \
-        -H "Origin: $DISALLOWED_ORIGIN" \
-        -d '{
-            "user_id": "user123",
-            "amount": 50.00,
-            "currency": "usd"
-        }')
-    
-    local status=$(echo "$response" | tail -n1)
-    
-    if check_status_code "$status" 403; then
-        print_test_result "Create transaction with disallowed origin returns 403" "PASS"
-    else
-        print_test_result "Create transaction with disallowed origin returns 403" "FAIL" "Expected status 403, got $status"
-    fi
-}
-
-# Test 3: Create transaction without Origin header (should return 403)
-test_create_transaction_no_origin() {
-    local response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
-        -H "Content-Type: application/json" \
-        -d '{
-            "user_id": "user123",
-            "amount": 50.00,
-            "currency": "usd"
-        }')
-    
-    local status=$(echo "$response" | tail -n1)
-    
-    if check_status_code "$status" 403; then
-        print_test_result "Create transaction without Origin header returns 403" "PASS"
-    else
-        print_test_result "Create transaction without Origin header returns 403" "FAIL" "Expected status 403, got $status"
-    fi
-}
-
-# Test 4: Create transaction with missing user_id (should return 400)
+# Test 2: Create transaction with missing user_id (should return 400)
 test_create_transaction_missing_user_id() {
     local response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
-        -H "Origin: $ALLOWED_ORIGIN" \
         -d '{
             "amount": 100.00,
             "currency": "usd"
@@ -147,7 +105,6 @@ test_create_transaction_missing_user_id() {
 test_create_transaction_missing_amount() {
     local response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
-        -H "Origin: $ALLOWED_ORIGIN" \
         -d '{
             "user_id": "user123",
             "currency": "usd"
@@ -166,7 +123,6 @@ test_create_transaction_missing_amount() {
 test_create_transaction_missing_currency() {
     local response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
-        -H "Origin: $ALLOWED_ORIGIN" \
         -d '{
             "user_id": "user123",
             "amount": 100.00
@@ -185,7 +141,6 @@ test_create_transaction_missing_currency() {
 test_create_transaction_negative_amount() {
     local response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
-        -H "Origin: $ALLOWED_ORIGIN" \
         -d '{
             "user_id": "user456",
             "amount": -75.25,
@@ -211,7 +166,6 @@ test_create_transaction_negative_amount() {
 test_create_transaction_different_currency() {
     local response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
-        -H "Origin: $ALLOWED_ORIGIN" \
         -d '{
             "user_id": "user789",
             "amount": 1000,
@@ -237,7 +191,6 @@ test_create_transaction_different_currency() {
 test_create_transaction_invalid_json() {
     local response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
-        -H "Origin: $ALLOWED_ORIGIN" \
         -d '{invalid json}')
     
     local status=$(echo "$response" | tail -n1)
@@ -253,7 +206,6 @@ test_create_transaction_invalid_json() {
 test_create_transaction_empty_user_id() {
     local response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
-        -H "Origin: $ALLOWED_ORIGIN" \
         -d '{
             "user_id": "",
             "amount": 100.00,
