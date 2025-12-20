@@ -1,0 +1,185 @@
+package repository
+
+import (
+	"testing"
+)
+
+// TestCreate_Success tests successful transaction creation
+func TestCreate_Success(t *testing.T) {
+	// TODO: Setup test database
+	// db := setupTestDB(t)
+	// defer cleanupTestDB(t, db)
+	// repo := NewPostgresTransactionRepository(db)
+
+	t.Skip("Implement after setting up test database")
+
+	// req := models.TransactionRequest{
+	// 	UserID:   "user123",
+	// 	Amount:   100.50,
+	// 	Currency: "usd",
+	// }
+
+	// result, err := repo.Create(context.Background(), req)
+
+	// require.NoError(t, err)
+	// assert.NotEmpty(t, result.ID)
+	// assert.Equal(t, req.UserID, result.UserID)
+	// assert.Equal(t, req.Amount, result.Amount)
+	// assert.Equal(t, req.Currency, result.Currency)
+	// assert.WithinDuration(t, time.Now(), result.Timestamp, 2*time.Second)
+}
+
+// TestCreate_NegativeAmount tests creating transaction with negative amount
+func TestCreate_NegativeAmount(t *testing.T) {
+	t.Skip("Implement after setting up test database")
+
+	// Test that negative amounts are properly stored
+	// req := models.TransactionRequest{
+	// 	UserID:   "user456",
+	// 	Amount:   -75.25,
+	// 	Currency: "usd",
+	// }
+
+	// result, err := repo.Create(context.Background(), req)
+	// require.NoError(t, err)
+	// assert.Equal(t, -75.25, result.Amount)
+}
+
+// TestCreate_DifferentCurrencies tests creating transactions with various currencies
+func TestCreate_DifferentCurrencies(t *testing.T) {
+	t.Skip("Implement after setting up test database")
+
+	// Test multiple currency types: usd, brl, loyalty_points
+}
+
+// TestGetByID_Success tests retrieving an existing transaction
+func TestGetByID_Success(t *testing.T) {
+	t.Skip("Implement after setting up test database")
+
+	// Create a transaction first
+	// Then retrieve it by ID
+	// Verify all fields match
+}
+
+// TestGetByID_NotFound tests retrieving a non-existent transaction
+func TestGetByID_NotFound(t *testing.T) {
+	t.Skip("Implement after setting up test database")
+
+	// Try to get a transaction with non-existent UUID
+	// Should return sql.ErrNoRows or custom not found error
+}
+
+// TestGetByID_InvalidUUID tests retrieving with malformed UUID
+func TestGetByID_InvalidUUID(t *testing.T) {
+	t.Skip("Implement after setting up test database")
+
+	// Pass invalid UUID format
+	// Should return validation error
+}
+
+// TestListByUser_Success tests listing transactions for a user
+func TestListByUser_Success(t *testing.T) {
+	t.Skip("Implement after setting up test database")
+
+	// Create multiple transactions for user123
+	// List them
+	// Verify count and order (newest first)
+}
+
+// TestListByUser_WithCurrencyFilter tests listing with currency filter
+func TestListByUser_WithCurrencyFilter(t *testing.T) {
+	t.Skip("Implement after setting up test database")
+
+	// Create transactions in USD and BRL
+	// Filter by USD only
+	// Verify only USD transactions returned
+}
+
+// TestListByUser_WithPagination tests pagination parameters
+func TestListByUser_WithPagination(t *testing.T) {
+	t.Skip("Implement after setting up test database")
+
+	// Create 5 transactions
+	// Request with limit=2, offset=0 -> should get first 2
+	// Request with limit=2, offset=2 -> should get next 2
+}
+
+// TestListByUser_OrderByTimestampDesc tests ordering
+func TestListByUser_OrderByTimestampDesc(t *testing.T) {
+	t.Skip("Implement after setting up test database")
+
+	// Create transactions with delays to ensure different timestamps
+	// Verify newest comes first
+}
+
+// TestListByUser_EmptyResult tests listing for user with no transactions
+func TestListByUser_EmptyResult(t *testing.T) {
+	t.Skip("Implement after setting up test database")
+
+	// List transactions for non-existent user
+	// Should return empty array, not error
+}
+
+// TestGetBalance_SingleCurrency tests balance calculation
+func TestGetBalance_SingleCurrency(t *testing.T) {
+	t.Skip("Implement after setting up test database")
+
+	// Create transactions: +100, -30, +50
+	// Balance should be 120
+}
+
+// TestGetBalance_NegativeBalance tests negative balance
+func TestGetBalance_NegativeBalance(t *testing.T) {
+	t.Skip("Implement after setting up test database")
+
+	// Create transactions: -50, -25
+	// Balance should be -75
+}
+
+// TestGetBalance_DecimalPrecision tests decimal accuracy
+func TestGetBalance_DecimalPrecision(t *testing.T) {
+	t.Skip("Implement after setting up test database")
+
+	// Create transactions with decimals: 99.99, 25.76, -10.50
+	// Verify precise calculation: 115.25
+}
+
+// TestGetBalance_NoTransactions tests balance with no transactions
+func TestGetBalance_NoTransactions(t *testing.T) {
+	t.Skip("Implement after setting up test database")
+
+	// Get balance for user with no transactions
+	// Should return 0, not error
+}
+
+// TestGetAllBalances_MultipleCurrencies tests multi-currency balances
+func TestGetAllBalances_MultipleCurrencies(t *testing.T) {
+	t.Skip("Implement after setting up test database")
+
+	// Create transactions in USD, BRL, loyalty_points
+	// Verify balances returned for all three currencies
+}
+
+// TestGetAllBalances_EmptyResult tests all balances with no transactions
+func TestGetAllBalances_EmptyResult(t *testing.T) {
+	t.Skip("Implement after setting up test database")
+
+	// Get all balances for user with no transactions
+	// Should return empty array, not error
+}
+
+// Helper functions that will be implemented
+
+// setupTestDB creates a test database instance
+func setupTestDB(t *testing.T) {
+	// TODO: Create test database connection
+	// TODO: Run migrations
+	t.Skip("Database setup not implemented")
+}
+
+// cleanupTestDB cleans up test database
+func cleanupTestDB(t *testing.T) {
+	// TODO: Clean test data
+	// TODO: Close database connection
+	t.Skip("Database cleanup not implemented")
+}
