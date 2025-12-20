@@ -68,10 +68,10 @@ func TestValidateUserID_Valid(t *testing.T) {
 	validator := NewTransactionValidator()
 
 	validUserIDs := []string{
-		"user123",
-		"USER-456",
-		"user_with_underscore",
 		"a1b2c3d4-e5f6-7890-abcd-ef1234567890", // UUID format
+		"123e4567-e89b-12d3-a456-426614174000",
+		"550e8400-e29b-41d4-a716-446655440000",
+		"f47ac10b-58cc-4372-a567-0e02b2c3d479",
 	}
 
 	for _, userID := range validUserIDs {
@@ -86,6 +86,21 @@ func TestValidateUserID_Empty(t *testing.T) {
 
 	err := validator.validateUserID("")
 	assert.ErrorIs(t, err, ErrUserIDEmpty)
+}
+
+func TestInvalidUserID(t *testing.T) {
+	validator := NewTransactionValidator()
+	invalidUserID := []string{
+		"not-a-uuid",
+		"user123",
+		"USER-456",
+		"user_with_underscore",
+	}
+	for _, id := range invalidUserID {
+		err := validator.validateUserID(id)
+		assert.ErrorIs(t, err, ErrUserIDInvalid)
+	}
+
 }
 
 // TestValidateCurrency_Valid tests valid currency codes

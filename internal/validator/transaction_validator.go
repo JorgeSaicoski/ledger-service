@@ -15,7 +15,7 @@ var (
 	// ErrCurrencyInvalid indicates currency format is invalid
 	ErrCurrencyInvalid = errors.New("currency must be alphanumeric and max 32 characters")
 	// ErrAmountInvalid indicates amount is not a valid number
-	ErrAmountInvalid = errors.New("amount must be a valid number")
+	ErrUserIDInvalid = errors.New("user_id must be a valid UUID")
 	// ErrUUIDInvalid indicates UUID format is invalid
 	ErrUUIDInvalid = errors.New("invalid UUID format")
 )
@@ -49,6 +49,9 @@ func (v *TransactionValidator) ValidateTransactionRequest(req models.Transaction
 func (v *TransactionValidator) validateUserID(userID string) error {
 	if userID == "" {
 		return ErrUserIDEmpty
+	}
+	if err := v.ValidateUUID(userID); err != nil {
+		return ErrUserIDInvalid
 	}
 	return nil
 }
