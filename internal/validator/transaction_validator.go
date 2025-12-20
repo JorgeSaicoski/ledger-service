@@ -36,30 +36,46 @@ func NewTransactionValidator() *TransactionValidator {
 
 // ValidateTransactionRequest validates a transaction creation request
 func (v *TransactionValidator) ValidateTransactionRequest(req models.TransactionRequest) error {
-	// TODO: implement this
+	if err := v.validateUserID(req.UserID); err != nil {
+		return err
+	}
+	if err := v.validateCurrency(req.Currency); err != nil {
+		return err
+	}
+	if err := v.validateAmount(req.Amount); err != nil {
+		return err
+	}
 	return nil
 }
 
-// ValidateUserID validates user_id format
-func (v *TransactionValidator) ValidateUserID(userID string) error {
-	// TODO: implement this
+// validateUserID validates user_id format
+func (v *TransactionValidator) validateUserID(userID string) error {
+	if userID == "" {
+		return ErrUserIDEmpty
+	}
 	return nil
 }
 
 // ValidateCurrency validates currency format
-func (v *TransactionValidator) ValidateCurrency(currency string) error {
-	// TODO: implement this
+func (v *TransactionValidator) validateCurrency(currency string) error {
+	if currency == "" || !v.currencyRegex.MatchString(currency) {
+		return ErrCurrencyEmpty
+	}
 	return nil
 }
 
 // ValidateAmount validates amount is a valid number
-func (v *TransactionValidator) ValidateAmount(amount float64) error {
-	// TODO: implement this
+func (v *TransactionValidator) validateAmount(amount float64) error {
+	if amount == 0 {
+		return ErrAmountInvalid
+	}
 	return nil
 }
 
 // ValidateUUID validates UUID format
 func (v *TransactionValidator) ValidateUUID(id string) error {
-	// TODO: implement this
+	if !v.uuidRegex.MatchString(id) {
+		return ErrUUIDInvalid
+	}
 	return nil
 }

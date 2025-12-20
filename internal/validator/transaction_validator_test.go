@@ -76,7 +76,7 @@ func TestValidateUserID_Valid(t *testing.T) {
 	}
 
 	for _, userID := range validUserIDs {
-		err := validator.ValidateUserID(userID)
+		err := validator.validateUserID(userID)
 		assert.NoError(t, err, "UserID '%s' should be valid", userID)
 	}
 }
@@ -85,7 +85,7 @@ func TestValidateUserID_Valid(t *testing.T) {
 func TestValidateUserID_Empty(t *testing.T) {
 	validator := NewTransactionValidator()
 
-	err := validator.ValidateUserID("")
+	err := validator.validateUserID("")
 	assert.ErrorIs(t, err, ErrUserIDEmpty)
 }
 
@@ -102,7 +102,7 @@ func TestValidateCurrency_Valid(t *testing.T) {
 	}
 
 	for _, currency := range validCurrencies {
-		err := validator.ValidateCurrency(currency)
+		err := validator.validateCurrency(currency)
 		assert.NoError(t, err, "Currency '%s' should be valid", currency)
 	}
 }
@@ -111,7 +111,7 @@ func TestValidateCurrency_Valid(t *testing.T) {
 func TestValidateCurrency_Empty(t *testing.T) {
 	validator := NewTransactionValidator()
 
-	err := validator.ValidateCurrency("")
+	err := validator.validateCurrency("")
 	assert.ErrorIs(t, err, ErrCurrencyEmpty)
 }
 
@@ -122,7 +122,7 @@ func TestValidateCurrency_TooLong(t *testing.T) {
 	// 33 characters - exceeds 32 char limit
 	longCurrency := "this_is_a_very_long_currency_code"
 
-	err := validator.ValidateCurrency(longCurrency)
+	err := validator.validateCurrency(longCurrency)
 	assert.ErrorIs(t, err, ErrCurrencyInvalid)
 }
 
@@ -139,7 +139,7 @@ func TestValidateCurrency_InvalidCharacters(t *testing.T) {
 	}
 
 	for _, currency := range invalidCurrencies {
-		err := validator.ValidateCurrency(currency)
+		err := validator.validateCurrency(currency)
 		assert.ErrorIs(t, err, ErrCurrencyInvalid, "Currency '%s' should be invalid", currency)
 	}
 }
@@ -158,7 +158,7 @@ func TestValidateAmount_Valid(t *testing.T) {
 	}
 
 	for _, amount := range validAmounts {
-		err := validator.ValidateAmount(amount)
+		err := validator.validateAmount(amount)
 		assert.NoError(t, err, "Amount %f should be valid", amount)
 	}
 }
@@ -174,7 +174,7 @@ func TestValidateAmount_Invalid(t *testing.T) {
 	}
 
 	for _, amount := range invalidAmounts {
-		err := validator.ValidateAmount(amount)
+		err := validator.validateAmount(amount)
 		assert.ErrorIs(t, err, ErrAmountInvalid, "Amount %f should be invalid", amount)
 	}
 }
