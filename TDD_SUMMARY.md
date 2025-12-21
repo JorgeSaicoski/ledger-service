@@ -23,9 +23,9 @@ This implementation provides a complete Test-Driven Development (TDD) test suite
 ### CI/CD Integration
 11. **.github/workflows/tests.yml** - GitHub Actions workflow for automated testing
 
-## Test Coverage: 26 Comprehensive Tests
+## Test Coverage: 28 Comprehensive Tests
 
-### POST /transactions (8 tests)
+### POST /transactions (10 tests)
 - Validation: Missing fields, empty fields, invalid JSON
 - Functional: Negative amounts, multiple currencies, data integrity
 
