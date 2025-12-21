@@ -38,7 +38,7 @@ Transaction:
 
 **Important Format Requirements:**
 - `user_id`: Must be a valid UUID in lowercase format (e.g., "550e8400-e29b-41d4-a716-446655440000")
-- `currency`: Must be lowercase alphanumeric (underscores allowed, e.g., "usd", "loyalty_points")
+- `currency`: Must be lowercase letters, numbers, and underscores only (e.g., "usd", "loyalty_points", "usd2024")
 - Uppercase characters are **not accepted** and will result in a 400 Bad Request error
 
 ## API Endpoints
