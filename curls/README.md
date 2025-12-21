@@ -220,11 +220,16 @@ The collections use the following sample UUIDs for testing:
 - `f47ac10b-58cc-4372-a567-0e02b2c3d479` - Tertiary test user
 
 Currencies used:
-- `usd` - US Dollar
-- `brl` - Brazilian Real
-- `eur` - Euro
-- `loyalty_points` - Custom currency example
-- `reward_tokens` - Custom currency example
+- `usd` - US Dollar (amounts in cents: 10050 = $100.50)
+- `brl` - Brazilian Real (amounts in centavos: 50000 = R$500,00)
+- `eur` - Euro (amounts in cents)
+- `loyalty_points` - Custom currency example (integer units)
+- `reward_tokens` - Custom currency example (integer units)
+
+**Important**: All monetary amounts are stored as integers in the smallest currency unit:
+- USD/BRL/EUR: cents/centavos (100 = $1.00)
+- UYU: pesos (no subdivision)
+- Custom currencies: define your own smallest unit
 
 ---
 
