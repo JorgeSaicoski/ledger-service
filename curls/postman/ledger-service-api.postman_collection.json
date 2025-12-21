@@ -312,7 +312,7 @@
 									"    var jsonData = pm.response.json();",
 									"    pm.expect(jsonData).to.have.property('user_id');",
 									"    pm.expect(jsonData).to.have.property('balances');",
-									"    pm.expect(jsonData.balances).to.be.an('object');",
+									"    pm.expect(jsonData.balances).to.be.an('array');",
 									"});"
 								],
 								"type": "text/javascript"
