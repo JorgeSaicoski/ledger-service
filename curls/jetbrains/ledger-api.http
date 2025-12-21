@@ -1,0 +1,271 @@
+### Ledger Service API Requests
+### Environment variables are defined in http-client.env.json
+
+### 1. Create Transaction - Positive Amount (USD)
+POST {{baseUrl}}/transactions
+Content-Type: application/json
+
+{
+  "user_id": "550e8400-e29b-41d4-a716-446655440000",
+  "amount": 10050,
+  "currency": "usd"
+}
+
+> {%
+    client.test("Status is 201", function() {
+        client.assert(response.status === 201, "Response status is not 201");
+    });
+    client.test("Response has id", function() {
+        client.assert(response.body.hasOwnProperty("id"), "Response doesn't have id field");
+    });
+    client.global.set("transaction_id", response.body.id);
+%}
+
+###
+
+### 2. Create Transaction - Negative Amount (Withdrawal/Debit)
+POST {{baseUrl}}/transactions
+Content-Type: application/json
+
+{
+  "user_id": "550e8400-e29b-41d4-a716-446655440000",
+  "amount": -5025,
+  "currency": "usd"
+}
+
+> {%
+    client.test("Status is 201", function() {
+        client.assert(response.status === 201, "Response status is not 201");
+    });
+%}
+
+###
+
+### 3. Create Transaction - BRL Currency
+POST {{baseUrl}}/transactions
+Content-Type: application/json
+
+{
+  "user_id": "123e4567-e89b-12d3-a456-426614174000",
+  "amount": 50000,
+  "currency": "brl"
+}
+
+###
+
+### 4. Create Transaction - Custom Currency (loyalty_points)
+POST {{baseUrl}}/transactions
+Content-Type: application/json
+
+{
+  "user_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+  "amount": 1000,
+  "currency": "loyalty_points"
+}
+
+###
+
+### 5. Get Transaction by ID (use transaction_id from previous request)
+GET {{baseUrl}}/transactions/{{transaction_id}}
+
+> {%
+    client.test("Status is 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+    client.test("Response has required fields", function() {
+        client.assert(response.body.hasOwnProperty("id"), "Missing id");
+        client.assert(response.body.hasOwnProperty("user_id"), "Missing user_id");
+        client.assert(response.body.hasOwnProperty("amount"), "Missing amount");
+        client.assert(response.body.hasOwnProperty("currency"), "Missing currency");
+        client.assert(response.body.hasOwnProperty("timestamp"), "Missing timestamp");
+    });
+%}
+
+###
+
+### 6. Get Transaction by ID - Specific UUID
+GET {{baseUrl}}/transactions/550e8400-e29b-41d4-a716-446655440000
+
+###
+
+### 7. List All Transactions
+GET {{baseUrl}}/transactions
+
+> {%
+    client.test("Status is 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+    client.test("Response is an array", function() {
+        client.assert(Array.isArray(response.body.transactions), "Response is not an array");
+    });
+%}
+
+###
+
+### 8. List Transactions by User ID
+GET {{baseUrl}}/transactions?user_id=550e8400-e29b-41d4-a716-446655440000
+
+###
+
+### 9. List Transactions by User ID and Currency
+GET {{baseUrl}}/transactions?user_id=550e8400-e29b-41d4-a716-446655440000&currency=usd
+
+###
+
+### 10. Get Balance for User (All Currencies)
+GET {{baseUrl}}/balance?user_id=550e8400-e29b-41d4-a716-446655440000
+
+> {%
+    client.test("Status is 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+    client.test("Response has user_id", function() {
+        client.assert(response.body.hasOwnProperty("user_id"), "Missing user_id");
+    });
+    client.test("Response has balances array", function() {
+        client.assert(response.body.hasOwnProperty("balances"), "Missing balances");
+        client.assert(Array.isArray(response.body.balances), "Field 'balances' is not an array");
+    });
+%}
+
+###
+
+### 11. Get Balance for User - Specific Currency (USD)
+GET {{baseUrl}}/balance?user_id=550e8400-e29b-41d4-a716-446655440000&currency=usd
+
+###
+
+### 12. Get Balance for User - Specific Currency (BRL)
+GET {{baseUrl}}/balance?user_id=123e4567-e89b-12d3-a456-426614174000&currency=brl
+
+###
+
+### ============================================
+### Error Cases / Validation Tests
+### ============================================
+
+### 13. Create Transaction - Empty User ID (Should Fail)
+POST {{baseUrl}}/transactions
+Content-Type: application/json
+
+{
+  "user_id": "",
+  "amount": 100,
+  "currency": "usd"
+}
+
+> {%
+    client.test("Status is 400", function() {
+        client.assert(response.status === 400, "Expected 400 Bad Request");
+    });
+%}
+
+###
+
+### 14. Create Transaction - Invalid User ID Format (Should Fail)
+POST {{baseUrl}}/transactions
+Content-Type: application/json
+
+{
+  "user_id": "not-a-valid-uuid",
+  "amount": 100,
+  "currency": "usd"
+}
+
+> {%
+    client.test("Status is 400", function() {
+        client.assert(response.status === 400, "Expected 400 Bad Request");
+    });
+%}
+
+###
+
+### 15. Create Transaction - Empty Currency (Should Fail)
+POST {{baseUrl}}/transactions
+Content-Type: application/json
+
+{
+  "user_id": "550e8400-e29b-41d4-a716-446655440000",
+  "amount": 100,
+  "currency": ""
+}
+
+> {%
+    client.test("Status is 400", function() {
+        client.assert(response.status === 400, "Expected 400 Bad Request");
+    });
+%}
+
+###
+
+### 16. Create Transaction - Invalid Currency (Uppercase)
+POST {{baseUrl}}/transactions
+Content-Type: application/json
+
+{
+  "user_id": "550e8400-e29b-41d4-a716-446655440000",
+  "amount": 100,
+  "currency": "USD"
+}
+
+> {%
+    client.test("Status is 400", function() {
+        client.assert(response.status === 400, "Expected 400 Bad Request");
+    });
+%}
+
+###
+
+### 17. Create Transaction - Invalid Currency (Special Characters)
+POST {{baseUrl}}/transactions
+Content-Type: application/json
+
+{
+  "user_id": "550e8400-e29b-41d4-a716-446655440000",
+  "amount": 100,
+  "currency": "usd!"
+}
+
+> {%
+    client.test("Status is 400", function() {
+        client.assert(response.status === 400, "Expected 400 Bad Request");
+    });
+%}
+
+###
+
+### 18. Get Transaction - Non-existent ID (Should Return 404)
+GET {{baseUrl}}/transactions/00000000-0000-0000-0000-000000000000
+
+> {%
+    client.test("Status is 404", function() {
+        client.assert(response.status === 404, "Expected 404 Not Found");
+    });
+%}
+
+###
+
+### 19. Get Transaction - Invalid UUID Format
+GET {{baseUrl}}/transactions/invalid-uuid-format
+
+> {%
+    client.test("Status is 400", function() {
+        client.assert(response.status === 400, "Expected 400 Bad Request");
+    });
+%}
+
+###
+
+### 20. Create Transaction - Missing Origin Header (Should Fail if CORS enforced)
+POST {{baseUrl}}/transactions
+Content-Type: application/json
+
+{
+  "user_id": "550e8400-e29b-41d4-a716-446655440000",
+  "amount": 100,
+  "currency": "usd"
+}
+
+###
+
+
