@@ -31,10 +31,17 @@ Mistakes = new compensating transactions (never delete).
 Transaction:
 - id (uuid, auto-generated)
 - user_id (string, required)
-- amount (decimal, can be negative)
-- currency (string, required) - e.g., "usd", "brl", "loyalty_points"
+- amount (integer, can be negative) - stored in smallest currency unit (cents/centavos)
+- currency (string, required) - e.g., "usd", "brl", "uyu", "loyalty_points"
 - timestamp (auto-generated)
 ```
+
+**Currency Amount Storage:**
+- **USD, BRL**: Store in cents/centavos (e.g., 100 = $1.00 or R$1,00)
+- **UYU**: Store in pesos (smallest unit, no subdivision)
+- **Custom currencies**: Define your own smallest unit
+
+This integer-based approach avoids floating-point precision issues and ensures accurate financial calculations.
 
 ## API Endpoints
 
@@ -45,17 +52,18 @@ Create a new transaction
 ```json
 {
   "user_id": "user123",
-  "amount": -50.00,
+  "amount": -5000,
   "currency": "usd"
 }
 ```
+*Note: Amount is -5000 cents = -$50.00*
 
 **Response:**
 ```json
 {
   "id": "uuid",
   "user_id": "user123",
-  "amount": -50.00,
+  "amount": -5000,
   "currency": "usd",
   "timestamp": "2025-01-15T10:30:00Z"
 }
@@ -71,20 +79,21 @@ Get all transactions for a user in specific currency
     {
       "id": "uuid1",
       "user_id": "user123",
-      "amount": 100.00,
+      "amount": 10000,
       "currency": "usd",
       "timestamp": "2025-01-15T10:00:00Z"
     },
     {
       "id": "uuid2",
       "user_id": "user123",
-      "amount": -50.00,
+      "amount": -5000,
       "currency": "usd",
       "timestamp": "2025-01-15T10:30:00Z"
     }
   ]
 }
 ```
+*Note: Amounts are in cents (10000 cents = $100.00, -5000 cents = -$50.00)*
 
 ### GET /balance?user_id={id}&currency={currency}
 Get current balance for user in specific currency
@@ -94,9 +103,10 @@ Get current balance for user in specific currency
 {
   "user_id": "user123",
   "currency": "usd",
-  "balance": 50.00
+  "balance": 5000
 }
 ```
+*Note: Balance is 5000 cents = $50.00*
 
 ### GET /balance?user_id={id}
 Get all balances for user across all currencies
@@ -106,20 +116,22 @@ Get all balances for user across all currencies
 {
   "user_id": "user123",
   "balances": [
-    {"currency": "usd", "balance": 50.00},
-    {"currency": "loyalty_points", "balance": 125.00}
+    {"currency": "usd", "balance": 5000},
+    {"currency": "loyalty_points", "balance": 12500}
   ]
 }
 ```
+*Note: Amounts are in smallest currency units (5000 cents = $50.00)*
 
 ## Use Cases
 
 ### Personal Finance Tracking
 User logs expenses and income. Calculator service sums transactions for budget reports.
+Example: Log $15.50 coffee purchase as `amount: -1550` (in cents).
 
 ### Cafe Loyalty System
-- Customer buys coffee → cashier service creates transaction: +10 loyalty_points
-- Customer redeems points → cashier service creates transaction: -10 loyalty_points
+- Customer buys coffee → cashier service creates transaction: +1000 loyalty_points
+- Customer redeems points → cashier service creates transaction: -1000 loyalty_points
 - Customer transfers points → two transactions (one negative, one positive)
 
 ### Multi-User Financial System
@@ -140,6 +152,9 @@ Single responsibility. Other services handle categorization and linking.
 **Why positive/negative amounts instead of transaction types?**
 Simpler math. Balance = SUM(amount). No conditional logic needed.
 
+**Why integers instead of decimals?**
+Avoids floating-point precision errors. Financial calculations must be exact. Store amounts in the smallest currency unit (cents, centavos, pesos).
+
 ## Database
 
 PostgreSQL
@@ -149,7 +164,7 @@ PostgreSQL
 
 ## Error Handling
 
-**400 Bad Request** - Invalid input (missing required fields, invalid amount)
+**400 Bad Request** - Invalid input (missing required fields, invalid amount, non-integer amount)
 **404 Not Found** - User has no transactions
 **500 Internal Server Error** - Database issues
 

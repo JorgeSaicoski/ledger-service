@@ -44,7 +44,7 @@ This implementation provides a complete Test-Driven Development (TDD) test suite
 - Single currency balance calculation
 - All balances for a user
 - Edge cases: No transactions, negative balances
-- Precision: Decimal calculations
+- Precision: Integer calculations (no floating-point errors)
 
 ## Key Features
 

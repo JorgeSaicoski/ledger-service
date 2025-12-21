@@ -18,7 +18,7 @@ setup_balance_transactions() {
         -H "Content-Type: application/json" \
         -d "{\
             \"user_id\": \"$user_id\",\
-            \"amount\": 100.00,\
+            \"amount\": 10000,\
             \"currency\": \"usd\"\
         }" > /dev/null
     
@@ -26,7 +26,7 @@ setup_balance_transactions() {
         -H "Content-Type: application/json" \
         -d "{\
             \"user_id\": \"$user_id\",\
-            \"amount\": -30.00,\
+            \"amount\": -3000,\
             \"currency\": \"usd\"\
         }" > /dev/null
     
@@ -34,7 +34,7 @@ setup_balance_transactions() {
         -H "Content-Type: application/json" \
         -d "{\
             \"user_id\": \"$user_id\",\
-            \"amount\": 50.00,\
+            \"amount\": 5000,\
             \"currency\": \"usd\"\
         }" > /dev/null
     
@@ -43,7 +43,7 @@ setup_balance_transactions() {
         -H "Content-Type: application/json" \
         -d "{\
             \"user_id\": \"$user_id\",\
-            \"amount\": 200.00,\
+            \"amount\": 20000,\
             \"currency\": \"brl\"\
         }" > /dev/null
     
@@ -51,7 +51,7 @@ setup_balance_transactions() {
         -H "Content-Type: application/json" \
         -d "{\
             \"user_id\": \"$user_id\",\
-            \"amount\": -50.00,\
+            \"amount\": -5000,\
             \"currency\": \"brl\"\
         }" > /dev/null
     
@@ -89,13 +89,11 @@ test_get_balance_single_currency() {
            check_json_field "$body" "balance"; then
             
             local balance=$(_safe_jq_value "$body" '.balance')
-            # Normalize balance (remove trailing zeros when possible)
-            balance=$(echo "$balance" | sed -E 's/\.0+$//; s/(\.[0-9]*[1-9])0+$/\1/')
-            # Expected: 100 - 30 + 50 = 120
-            if [ "$balance" = "120" ]; then
+            # Expected: 10000 - 3000 + 5000 = 12000
+            if [ "$balance" = "12000" ]; then
                 print_test_result "Get balance for user and currency" "PASS"
             else
-                print_test_result "Get balance for user and currency" "FAIL" "Expected balance 120, got $balance"
+                print_test_result "Get balance for user and currency" "FAIL" "Expected balance 12000, got $balance"
             fi
         else
             print_test_result "Get balance for user and currency" "FAIL" "Missing required fields"
@@ -120,29 +118,25 @@ test_get_all_balances() {
             
             local count=$(echo "$body" | jq '.balances | length' 2>/dev/null || echo "0")
             if [ "$count" -ge 3 ]; then
-                # Check if USD balance is correct (120)
-                local usd_balance_raw=$(_safe_jq_value "$body" '.balances[] | select(.currency=="usd") | .balance')
-                local brl_balance_raw=$(_safe_jq_value "$body" '.balances[] | select(.currency=="brl") | .balance')
-
-                # Normalize
-                local usd_balance=$(echo "$usd_balance_raw" | sed -E 's/\.0+$//; s/(\.[0-9]*[1-9])0+$/\1/')
-                local brl_balance=$(echo "$brl_balance_raw" | sed -E 's/\.0+$//; s/(\.[0-9]*[1-9])0+$/\1/')
+                # Check if USD balance is correct (12000)
+                local usd_balance=$(_safe_jq_value "$body" '.balances[] | select(.currency=="usd") | .balance')
+                local brl_balance=$(_safe_jq_value "$body" '.balances[] | select(.currency=="brl") | .balance')
 
                 local usd_ok=false
                 local brl_ok=false
                 
-                if [ "$usd_balance" = "120" ]; then
+                if [ "$usd_balance" = "12000" ]; then
                     usd_ok=true
                 fi
                 
-                if [ "$brl_balance" = "150" ]; then
+                if [ "$brl_balance" = "15000" ]; then
                     brl_ok=true
                 fi
                 
                 if [ "$usd_ok" = true ] && [ "$brl_ok" = true ]; then
                     print_test_result "Get all balances for user" "PASS"
                 else
-                    print_test_result "Get all balances for user" "FAIL" "Balance calculation incorrect: USD=$usd_balance (expected 120), BRL=$brl_balance (expected 150)"
+                    print_test_result "Get all balances for user" "FAIL" "Balance calculation incorrect: USD=$usd_balance (expected 12000), BRL=$brl_balance (expected 15000)"
                 fi
             else
                 print_test_result "Get all balances for user" "FAIL" "Expected 3 currencies, got $count"
@@ -176,8 +170,7 @@ test_get_balance_no_transactions() {
     local status=$(echo "$response" | tail -n1)
     
     if check_status_code "$status" 200; then
-        local balance_raw=$(_safe_jq_value "$body" '.balance')
-        local balance=$(echo "$balance_raw" | sed -E 's/\.0+$//; s/(\.[0-9]*[1-9])0+$/\1/')
+        local balance=$(_safe_jq_value "$body" '.balance')
         if [ -z "$balance" ]; then
             balance="0"
         fi
@@ -219,7 +212,7 @@ test_get_balance_negative_only() {
         -H "Content-Type: application/json" \
         -d "{\
             \"user_id\": \"$test_user\",\
-            \"amount\": -50.00,\
+            \"amount\": -5000,\
             \"currency\": \"usd\"\
         }" > /dev/null
     
@@ -227,7 +220,7 @@ test_get_balance_negative_only() {
         -H "Content-Type: application/json" \
         -d "{\
             \"user_id\": \"$test_user\",\
-            \"amount\": -25.00,\
+            \"amount\": -2500,\
             \"currency\": \"usd\"\
         }" > /dev/null
     
@@ -236,19 +229,18 @@ test_get_balance_negative_only() {
     local status=$(echo "$response" | tail -n1)
     
     if check_status_code "$status" 200; then
-        local balance_raw=$(_safe_jq_value "$body" '.balance')
-        local balance=$(echo "$balance_raw" | sed -E 's/\.0+$//; s/(\.[0-9]*[1-9])0+$/\1/')
-        if [ "$balance" = "-75" ]; then
+        local balance=$(_safe_jq_value "$body" '.balance')
+        if [ "$balance" = "-7500" ]; then
             print_test_result "Get balance with only negative transactions" "PASS"
         else
-            print_test_result "Get balance with only negative transactions" "FAIL" "Expected balance -75, got $balance"
+            print_test_result "Get balance with only negative transactions" "FAIL" "Expected balance -7500, got $balance"
         fi
     else
         print_test_result "Get balance with only negative transactions" "FAIL" "Expected status 200, got $status"
     fi
 }
 
-# Test 7: Balance calculation with decimal amounts
+# Test 7: Balance calculation with integer amounts
 test_get_balance_decimal_precision() {
     local test_user="balance_test_user_decimal"
     
@@ -256,7 +248,7 @@ test_get_balance_decimal_precision() {
         -H "Content-Type: application/json" \
         -d "{\
             \"user_id\": \"$test_user\",\
-            \"amount\": 100.55,\
+            \"amount\": 10055,\
             \"currency\": \"usd\"\
         }" > /dev/null
     
@@ -264,7 +256,7 @@ test_get_balance_decimal_precision() {
         -H "Content-Type: application/json" \
         -d "{\
             \"user_id\": \"$test_user\",\
-            \"amount\": 50.33,\
+            \"amount\": 5033,\
             \"currency\": \"usd\"\
         }" > /dev/null
     
@@ -272,7 +264,7 @@ test_get_balance_decimal_precision() {
         -H "Content-Type: application/json" \
         -d "{\
             \"user_id\": \"$test_user\",\
-            \"amount\": -25.12,\
+            \"amount\": -2512,\
             \"currency\": \"usd\"\
         }" > /dev/null
     
@@ -281,16 +273,15 @@ test_get_balance_decimal_precision() {
     local status=$(echo "$response" | tail -n1)
     
     if check_status_code "$status" 200; then
-        local balance_raw=$(_safe_jq_value "$body" '.balance')
-        local balance=$(echo "$balance_raw" | sed -E 's/\.0+$//; s/(\.[0-9]*[1-9])0+$/\1/')
-        # Expected: 100.55 + 50.33 - 25.12 = 125.76
-        if [ "$balance" = "125.76" ]; then
-            print_test_result "Get balance with decimal precision" "PASS"
+        local balance=$(_safe_jq_value "$body" '.balance')
+        # Expected: 10055 + 5033 - 2512 = 12576 (representing $125.76)
+        if [ "$balance" = "12576" ]; then
+            print_test_result "Get balance with integer precision" "PASS"
         else
-            print_test_result "Get balance with decimal precision" "FAIL" "Expected balance 125.76, got $balance"
+            print_test_result "Get balance with integer precision" "FAIL" "Expected balance 12576, got $balance"
         fi
     else
-        print_test_result "Get balance with decimal precision" "FAIL" "Expected status 200, got $status"
+        print_test_result "Get balance with integer precision" "FAIL" "Expected status 200, got $status"
     fi
 }
 
