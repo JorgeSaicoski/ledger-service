@@ -8,13 +8,22 @@ echo "========================================="
 echo "Testing POST /transactions"
 echo "========================================="
 
+# Use a valid lowercase UUID for all user_id fields
+TEST_USER_ID="550e8400-e29b-41d4-a716-446655440000"
+TEST_USER_ID_2="11111111-1111-1111-1111-111111111111"
+TEST_USER_ID_3="22222222-2222-2222-2222-222222222222"
+
 # Helper to create a transaction and optionally return only the ID
 _create_transaction() {
-    local user_id="$1"
-    local amount="$2"
-    local currency="$3"
+    local user_id
+    local amount
+    local currency
+    user_id="$1"
+    amount="$2"
+    currency="$3"
 
-    local response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
+    local response
+    response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
         -d "{\
             \"user_id\": \"$user_id\",\
@@ -22,8 +31,10 @@ _create_transaction() {
             \"currency\": \"$currency\"\
         }")
 
-    local body=$(echo "$response" | sed '$d')
-    local status=$(echo "$response" | tail -n1)
+    local body
+    body=$(echo "$response" | sed '$d')
+    local status
+    status=$(echo "$response" | tail -n1)
 
     # If QUIET_OUTPUT is set to 1, print only the ID (or empty on failure)
     if [ "${QUIET_OUTPUT:-0}" -eq 1 ]; then
@@ -42,17 +53,19 @@ _create_transaction() {
 
 # Test 1: Create transaction with valid data and allowed origin
 test_create_transaction_success() {
-    local response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
+    local response
+    response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
         -d '{
-            "user_id": "user123",
+            "user_id": "'$TEST_USER_ID'",
             "amount": 10050,
             "currency": "usd"
         }')
-    
-    local body=$(echo "$response" | sed '$d')
-    local status=$(echo "$response" | tail -n1)
-    
+    local body
+    body=$(echo "$response" | sed '$d')
+    local status
+    status=$(echo "$response" | tail -n1)
+
     if check_status_code "$status" 201; then
         if check_json_field "$body" "id" && \
            check_json_field "$body" "user_id" && \
@@ -60,11 +73,14 @@ test_create_transaction_success() {
            check_json_field "$body" "currency" && \
            check_json_field "$body" "timestamp"; then
             
-            local user_id=$(get_json_field "$body" "user_id")
-            local amount=$(get_json_field "$body" "amount")
-            local currency=$(get_json_field "$body" "currency")
-            
-            if [ "$user_id" = "user123" ] && \
+            local user_id
+            user_id=$(get_json_field "$body" "user_id")
+            local amount
+            amount=$(get_json_field "$body" "amount")
+            local currency
+            currency=$(get_json_field "$body" "currency")
+
+            if [ "$user_id" = "'$TEST_USER_ID'" ] && \
                [ "$amount" = "10050" ] && \
                [ "$currency" = "usd" ]; then
                 print_test_result "Create transaction with valid data" "PASS"
@@ -85,15 +101,16 @@ test_create_transaction_success() {
 
 # Test 2: Create transaction with missing user_id (should return 400)
 test_create_transaction_missing_user_id() {
-    local response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
+    local response
+    response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
         -d '{
             "amount": 10000,
             "currency": "usd"
         }')
-    
-    local status=$(echo "$response" | tail -n1)
-    
+    local status
+    status=$(echo "$response" | tail -n1)
+
     if check_status_code "$status" 400; then
         print_test_result "Create transaction with missing user_id returns 400" "PASS"
     else
@@ -101,17 +118,18 @@ test_create_transaction_missing_user_id() {
     fi
 }
 
-# Test 5: Create transaction with missing amount (should return 400)
+# Test 3: Create transaction with missing amount (should return 400)
 test_create_transaction_missing_amount() {
-    local response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
+    local response
+    response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
         -d '{
-            "user_id": "user123",
+            "user_id": "'$TEST_USER_ID'",
             "currency": "usd"
         }')
-    
-    local status=$(echo "$response" | tail -n1)
-    
+    local status
+    status=$(echo "$response" | tail -n1)
+
     if check_status_code "$status" 400; then
         print_test_result "Create transaction with missing amount returns 400" "PASS"
     else
@@ -119,17 +137,18 @@ test_create_transaction_missing_amount() {
     fi
 }
 
-# Test 6: Create transaction with missing currency (should return 400)
+# Test 4: Create transaction with missing currency (should return 400)
 test_create_transaction_missing_currency() {
-    local response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
+    local response
+    response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
         -d '{
-            "user_id": "user123",
+            "user_id": "'$TEST_USER_ID'",
             "amount": 10000
         }')
-    
-    local status=$(echo "$response" | tail -n1)
-    
+    local status
+    status=$(echo "$response" | tail -n1)
+
     if check_status_code "$status" 400; then
         print_test_result "Create transaction with missing currency returns 400" "PASS"
     else
@@ -137,21 +156,24 @@ test_create_transaction_missing_currency() {
     fi
 }
 
-# Test 7: Create transaction with negative amount (should succeed)
+# Test 5: Create transaction with negative amount (should succeed)
 test_create_transaction_negative_amount() {
-    local response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
+    local response
+    response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
         -d '{
-            "user_id": "user456",
+            "user_id": "'$TEST_USER_ID_2'",
             "amount": -7525,
             "currency": "usd"
         }')
-    
-    local body=$(echo "$response" | sed '$d')
-    local status=$(echo "$response" | tail -n1)
-    
+    local body
+    body=$(echo "$response" | sed '$d')
+    local status
+    status=$(echo "$response" | tail -n1)
+    local amount
+    amount=$(get_json_field "$body" "amount")
+
     if check_status_code "$status" 201; then
-        local amount=$(get_json_field "$body" "amount")
         if [ "$amount" = "-7525" ]; then
             print_test_result "Create transaction with negative amount" "PASS"
         else
@@ -162,21 +184,24 @@ test_create_transaction_negative_amount() {
     fi
 }
 
-# Test 8: Create transaction with different currency
+# Test 6: Create transaction with different currency
 test_create_transaction_different_currency() {
-    local response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
+    local response
+    response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
         -d '{
-            "user_id": "user789",
+            "user_id": "'$TEST_USER_ID_3'",
             "amount": 1000,
             "currency": "loyalty_points"
         }')
-    
-    local body=$(echo "$response" | sed '$d')
-    local status=$(echo "$response" | tail -n1)
-    
+    local body
+    body=$(echo "$response" | sed '$d')
+    local status
+    status=$(echo "$response" | tail -n1)
+    local currency
+    currency=$(get_json_field "$body" "currency")
+
     if check_status_code "$status" 201; then
-        local currency=$(get_json_field "$body" "currency")
         if [ "$currency" = "loyalty_points" ]; then
             print_test_result "Create transaction with loyalty_points currency" "PASS"
         else
@@ -187,14 +212,15 @@ test_create_transaction_different_currency() {
     fi
 }
 
-# Test 9: Create transaction with invalid JSON (should return 400)
+# Test 7: Create transaction with invalid JSON (should return 400)
 test_create_transaction_invalid_json() {
-    local response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
+    local response
+    response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
         -d '{invalid json}')
-    
-    local status=$(echo "$response" | tail -n1)
-    
+    local status
+    status=$(echo "$response" | tail -n1)
+
     if check_status_code "$status" 400; then
         print_test_result "Create transaction with invalid JSON returns 400" "PASS"
     else
@@ -202,18 +228,19 @@ test_create_transaction_invalid_json() {
     fi
 }
 
-# Test 10: Create transaction with empty user_id (should return 400)
+# Test 8: Create transaction with empty user_id (should return 400)
 test_create_transaction_empty_user_id() {
-    local response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
+    local response
+    response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
         -d '{
             "user_id": "",
             "amount": 10000,
             "currency": "usd"
         }')
-    
-    local status=$(echo "$response" | tail -n1)
-    
+    local status
+    status=$(echo "$response" | tail -n1)
+
     if check_status_code "$status" 400; then
         print_test_result "Create transaction with empty user_id returns 400" "PASS"
     else
@@ -224,7 +251,7 @@ test_create_transaction_empty_user_id() {
 # Run all tests
 # Use QUIET_OUTPUT=1 when calling _create_transaction in command substitution to get just the ID
 # Create a transaction and capture its ID (quiet)
-QUIET_OUTPUT=1 TRANSACTION_ID="$(_create_transaction "user123" 10050 "usd")"
+QUIET_OUTPUT=1 TRANSACTION_ID="$(_create_transaction "'$TEST_USER_ID'" 10050 "usd")"
 # If previous call failed, fall back to running the verbose test which will also write the ID to file
 if [ -z "$TRANSACTION_ID" ]; then
     test_create_transaction_success
@@ -241,3 +268,13 @@ else
 fi
 
 export TEST_TRANSACTION_ID="$TRANSACTION_ID"
+
+# Explicitly run all test functions
+# (test_create_transaction_success is already run above, so skip duplicate)
+test_create_transaction_missing_user_id
+test_create_transaction_missing_amount
+test_create_transaction_missing_currency
+test_create_transaction_negative_amount
+test_create_transaction_different_currency
+test_create_transaction_invalid_json
+test_create_transaction_empty_user_id

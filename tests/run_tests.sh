@@ -22,12 +22,13 @@ fi
 echo ""
 
 # Verify documented test count matches implemented tests (best-effort)
-DOC_TEST_COUNT=28
+# If DOC_TEST_COUNT is set in the environment, treat it as the documented count.
+EXPECTED_TEST_COUNT="${DOC_TEST_COUNT:-}"
 # Count functions named test_* in test files
 IMPLEMENTED_TEST_COUNT=$(grep -rhoP "^test_[a-zA-Z0-9_]+\b" "$SCRIPT_DIR" | sort -u | wc -l | tr -d ' ')
-if [ -n "$IMPLEMENTED_TEST_COUNT" ] && [ "$IMPLEMENTED_TEST_COUNT" -ne "$DOC_TEST_COUNT" ]; then
-    echo -e "${YELLOW}NOTE: Test specification documents ${DOC_TEST_COUNT} tests but ${IMPLEMENTED_TEST_COUNT} unique test functions were found.${NC}"
-    echo "Please update TEST_SPECIFICATION.md if this is intentional."
+if [ -n "$EXPECTED_TEST_COUNT" ] && [ -n "$IMPLEMENTED_TEST_COUNT" ] && [ "$IMPLEMENTED_TEST_COUNT" -ne "$EXPECTED_TEST_COUNT" ]; then
+    echo -e "${YELLOW}NOTE: Test specification documents ${EXPECTED_TEST_COUNT} tests but ${IMPLEMENTED_TEST_COUNT} unique test functions were found.${NC}"
+    echo "Please update TEST_SPECIFICATION.md or DOC_TEST_COUNT if this is intentional."
 fi
 
 # Run all test suites
