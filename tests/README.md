@@ -66,10 +66,8 @@ You can run individual test suites separately:
 
 ## Test Coverage
 
-### POST /transactions (10 tests)
-- ✓ Create transaction with valid data and allowed origin (201)
-- ✓ Create transaction with disallowed origin returns 403
-- ✓ Create transaction without Origin header returns 403
+### POST /transactions (8 tests)
+- ✓ Create transaction with valid data (201)
 - ✓ Create transaction with missing user_id returns 400
 - ✓ Create transaction with missing amount returns 400
 - ✓ Create transaction with missing currency returns 400
@@ -102,7 +100,11 @@ You can run individual test suites separately:
 - ✓ Balance calculation with only negative transactions
 - ✓ Balance calculation with decimal precision
 
-**Total: 28 comprehensive tests**
+**Total: 26 comprehensive tests**
+
+## Security Architecture
+
+This service implements a **trust-based security model** where authentication and authorization are handled at the **API Gateway level**. The ledger service itself does not perform origin validation or middleware-based access control. It trusts that all incoming requests have been properly authenticated and authorized by the gateway before reaching the service.
 
 ## Test Output
 
