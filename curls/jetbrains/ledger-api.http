@@ -122,8 +122,9 @@ GET {{baseUrl}}/balance?user_id=550e8400-e29b-41d4-a716-446655440000
     client.test("Response has user_id", function() {
         client.assert(response.body.hasOwnProperty("user_id"), "Missing user_id");
     });
-    client.test("Response has balances object", function() {
+    client.test("Response has balances array", function() {
         client.assert(response.body.hasOwnProperty("balances"), "Missing balances");
+        client.assert(Array.isArray(response.body.balances), "Field 'balances' is not an array");
     });
 %}
 
