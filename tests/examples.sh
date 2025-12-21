@@ -34,7 +34,7 @@ curl -i -X POST "$BASE_URL/transactions" \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": "demo_user_1",
-    "amount": 100.50,
+    "amount": 10050,
     "currency": "usd"
   }'
 
@@ -43,7 +43,7 @@ TRANSACTION_ID=$(curl -s -X POST "$BASE_URL/transactions" \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": "demo_user_1",
-    "amount": 50.00,
+    "amount": 5000,
     "currency": "usd"
   }' | jq -r '.id' 2>/dev/null)
 
@@ -55,7 +55,7 @@ curl -i -X POST "$BASE_URL/transactions" \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": "demo_user_1",
-    "amount": -30.25,
+    "amount": -3025,
     "currency": "usd"
   }'
 
@@ -67,7 +67,7 @@ curl -s -X POST "$BASE_URL/transactions" \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": "demo_user_1",
-    "amount": 500.00,
+    "amount": 50000,
     "currency": "brl"
   }' | jq '.'
 

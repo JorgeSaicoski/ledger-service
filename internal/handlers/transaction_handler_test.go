@@ -34,9 +34,9 @@ func (m *MockTransactionRepository) ListByUser(ctx context.Context, userID strin
 	return args.Get(0).([]models.Transaction), args.Error(1)
 }
 
-func (m *MockTransactionRepository) GetBalance(ctx context.Context, userID, currency string) (float64, error) {
+func (m *MockTransactionRepository) GetBalance(ctx context.Context, userID, currency string) (int, error) {
 	args := m.Called(ctx, userID, currency)
-	return args.Get(0).(float64), args.Error(1)
+	return args.Get(0).(int), args.Error(1)
 }
 
 func (m *MockTransactionRepository) GetAllBalances(ctx context.Context, userID string) ([]models.CurrencyBalance, error) {

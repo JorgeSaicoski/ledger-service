@@ -136,12 +136,12 @@ func TestGetBalance_NegativeBalance(t *testing.T) {
 	// Balance should be -75
 }
 
-// TestGetBalance_DecimalPrecision tests decimal accuracy
-func TestGetBalance_DecimalPrecision(t *testing.T) {
+// TestGetBalance_IntegerPrecision tests integer calculation accuracy
+func TestGetBalance_IntegerPrecision(t *testing.T) {
 	t.Skip("Implement after setting up test database")
 
-	// Create transactions with decimals: 99.99, 25.76, -10.50
-	// Verify precise calculation: 115.25
+	// Create transactions with integer amounts: 9999, 2576, -1050 (representing $99.99, $25.76, -$10.50 in cents)
+	// Verify precise calculation: 11525 (representing $115.25)
 }
 
 // TestGetBalance_NoTransactions tests balance with no transactions
