@@ -117,5 +117,3 @@ test_get_transaction_by_id
 test_get_transaction_not_found
 test_get_transaction_invalid_uuid
 test_get_transaction_data_integrity
-
-# All test payloads and assertions now use integer amounts only.

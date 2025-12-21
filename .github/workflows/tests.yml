@@ -60,7 +60,6 @@ jobs:
       # - name: Start service
       #   env:
       #     DATABASE_URL: postgres://postgres:postgres@localhost:5432/ledger_test?sslmode=disable
-      #     ALLOWED_ORIGIN: http://internal-gateway.local
       #     PORT: 8080
       #   run: |
       #     ./ledger-service &
@@ -71,7 +70,6 @@ jobs:
       # - name: Run API tests
       #   env:
       #     TEST_BASE_URL: http://localhost:8080
-      #     TEST_ALLOWED_ORIGIN: http://internal-gateway.local
       #   run: ./tests/run_tests.sh
       
       # - name: Stop service
