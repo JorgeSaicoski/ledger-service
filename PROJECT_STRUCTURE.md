@@ -64,7 +64,7 @@ Ledger Service is a simple transaction recording microservice. It stores financi
 - `user_id`: Must be a valid lowercase UUID format (e.g., "550e8400-e29b-41d4-a716-446655440000")
 - Uppercase UUIDs are **not accepted**
 - `amount`: Valid decimal number, reasonable range
-- `currency`: Lowercase alphanumeric string with underscores, max length 32
+- `currency`: Lowercase alphanumeric (underscores allowed), max length 32
 - SQL injection prevention (parameterized queries)
 
 ### What Ledger Service Does NOT Validate
