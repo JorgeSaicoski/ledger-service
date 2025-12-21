@@ -30,11 +30,16 @@ Mistakes = new compensating transactions (never delete).
 ```
 Transaction:
 - id (uuid, auto-generated)
-- user_id (string, required)
+- user_id (string, required, lowercase UUID format)
 - amount (decimal, can be negative)
-- currency (string, required) - e.g., "usd", "brl", "loyalty_points"
+- currency (string, required, lowercase) - e.g., "usd", "brl", "loyalty_points"
 - timestamp (auto-generated)
 ```
+
+**Important Format Requirements:**
+- `user_id`: Must be a valid UUID in lowercase format (e.g., "550e8400-e29b-41d4-a716-446655440000")
+- `currency`: Must be lowercase alphanumeric with underscores (e.g., "usd", "loyalty_points")
+- Uppercase characters are **not accepted** and will result in a 400 Bad Request error
 
 ## API Endpoints
 
@@ -44,17 +49,19 @@ Create a new transaction
 **Request:**
 ```json
 {
-  "user_id": "user123",
+  "user_id": "550e8400-e29b-41d4-a716-446655440000",
   "amount": -50.00,
   "currency": "usd"
 }
 ```
 
+**Note:** `user_id` must be a valid lowercase UUID format.
+
 **Response:**
 ```json
 {
-  "id": "uuid",
-  "user_id": "user123",
+  "id": "a1b2c3d4-e5f6-4890-abcd-ef1234567890",
+  "user_id": "550e8400-e29b-41d4-a716-446655440000",
   "amount": -50.00,
   "currency": "usd",
   "timestamp": "2025-01-15T10:30:00Z"
@@ -64,20 +71,22 @@ Create a new transaction
 ### GET /transactions?user_id={id}&currency={currency}
 Get all transactions for a user in specific currency
 
+**Note:** `user_id` parameter must be a valid lowercase UUID format.
+
 **Response:**
 ```json
 {
   "transactions": [
     {
-      "id": "uuid1",
-      "user_id": "user123",
+      "id": "a1b2c3d4-e5f6-4890-abcd-ef1234567890",
+      "user_id": "550e8400-e29b-41d4-a716-446655440000",
       "amount": 100.00,
       "currency": "usd",
       "timestamp": "2025-01-15T10:00:00Z"
     },
     {
-      "id": "uuid2",
-      "user_id": "user123",
+      "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+      "user_id": "550e8400-e29b-41d4-a716-446655440000",
       "amount": -50.00,
       "currency": "usd",
       "timestamp": "2025-01-15T10:30:00Z"
@@ -89,10 +98,12 @@ Get all transactions for a user in specific currency
 ### GET /balance?user_id={id}&currency={currency}
 Get current balance for user in specific currency
 
+**Note:** `user_id` parameter must be a valid lowercase UUID format.
+
 **Response:**
 ```json
 {
-  "user_id": "user123",
+  "user_id": "550e8400-e29b-41d4-a716-446655440000",
   "currency": "usd",
   "balance": 50.00
 }
@@ -101,10 +112,12 @@ Get current balance for user in specific currency
 ### GET /balance?user_id={id}
 Get all balances for user across all currencies
 
+**Note:** `user_id` parameter must be a valid lowercase UUID format.
+
 **Response:**
 ```json
 {
-  "user_id": "user123",
+  "user_id": "550e8400-e29b-41d4-a716-446655440000",
   "balances": [
     {"currency": "usd", "balance": 50.00},
     {"currency": "loyalty_points", "balance": 125.00}
@@ -149,7 +162,10 @@ PostgreSQL
 
 ## Error Handling
 
-**400 Bad Request** - Invalid input (missing required fields, invalid amount)
+**400 Bad Request** - Invalid input (missing required fields, invalid format)
+  - Missing required fields
+  - Invalid UUID format (must be lowercase)
+  - Invalid currency format (must be lowercase alphanumeric)
 **404 Not Found** - User has no transactions
 **500 Internal Server Error** - Database issues
 
