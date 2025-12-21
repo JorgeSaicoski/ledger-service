@@ -196,11 +196,11 @@ This project follows **Test-Driven Development (TDD)** principles. Comprehensive
 
 ### Test Coverage
 
-- **28 comprehensive tests** covering all API endpoints
-- Security validation (origin-based access control)
+- **26 comprehensive tests** covering all API endpoints
 - Input validation (missing fields, invalid data)
 - Functional tests (negative amounts, multiple currencies)
 - Edge cases (empty results, pagination, decimal precision)
+- Security is handled at the API Gateway level (not tested in service layer)
 
 See [tests/README.md](tests/README.md) for detailed documentation.
 

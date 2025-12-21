@@ -263,11 +263,19 @@ This document outlines all test cases for the Transaction Ledger Service API, or
 
 | Test Suite | Total Tests | Critical | High Priority | Medium Priority |
 |------------|-------------|----------|---------------|-----------------|
-| POST /transactions | 10 | 3 (security) | 5 (validation) | 2 (functional) |
-| GET /transactions/{id} | 4 | 1 | 2 | 1 |
-| GET /transactions (list) | 7 | 1 | 3 | 3 |
+| POST /transactions | 8 | 0 | 5 (validation) | 3 (functional) |
+| GET /transactions/{id} | 4 | 0 | 3 | 1 |
+| GET /transactions (list) | 7 | 0 | 4 | 3 |
 | GET /balance | 7 | 0 | 4 | 3 |
-| **TOTAL** | **28** | **5** | **14** | **9** |
+| **TOTAL** | **26** | **0** | **16** | **10** |
+
+## Security Architecture
+
+This service implements a **trust-based security model**:
+- **Authentication and authorization** are handled at the **API Gateway level**
+- The ledger service does not perform origin validation or middleware-based access control
+- All incoming requests are trusted as they have been authenticated by the gateway
+- This approach simplifies the service layer and centralizes security concerns at the gateway
 
 ## Test Data Requirements
 
@@ -297,7 +305,7 @@ This document outlines all test cases for the Transaction Ledger Service API, or
 - ✓ UUIDs are valid format
 
 ### Overall Suite
-- ✓ All 28 tests pass
+- ✓ All 26 tests pass
 - ✓ No false positives/negatives
 - ✓ Tests are reproducible
 - ✓ Tests run in < 2 minutes
