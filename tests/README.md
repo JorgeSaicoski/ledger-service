@@ -91,16 +91,15 @@ You can run individual test suites separately:
 - ✓ Verify transactions are ordered by timestamp DESC
 - ✓ List transactions for user with no transactions returns empty array
 
-### GET /balance (7 tests)
+### GET /balance (6 tests)
 - ✓ Get balance for specific user and currency (200)
 - ✓ Get all balances for user (200)
 - ✓ Get balance without user_id returns 400
 - ✓ Get balance for user with no transactions returns 0
 - ✓ Get all balances for user with no transactions returns empty array
 - ✓ Balance calculation with only negative transactions
-- ✓ Balance calculation with decimal precision
 
-**Total: 26 comprehensive tests**
+**Total: 25 comprehensive tests**
 
 ## Security Architecture
 
@@ -289,7 +288,6 @@ When adding new tests:
 
 ### Permission denied
 - Make scripts executable: `chmod +x tests/*.sh`
-
 
 ## Contributing
 

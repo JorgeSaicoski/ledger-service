@@ -16,7 +16,7 @@ test_get_transaction_by_id() {
         -H "Content-Type: application/json" \
         -d '{
             "user_id": "test_user_get",
-            "amount": 250.75,
+            "amount": 25075,
             "currency": "usd"
         }')
     
@@ -89,7 +89,7 @@ test_get_transaction_data_integrity() {
         -H "Content-Type: application/json" \
         -d '{
             "user_id": "integrity_test",
-            "amount": 99.99,
+            "amount": 9999,
             "currency": "brl"
         }')
     
@@ -104,7 +104,7 @@ test_get_transaction_data_integrity() {
     local currency=$(get_json_field "$response" "currency")
     
     if [ "$user_id" = "integrity_test" ] && \
-       [ "$amount" = "99.99" ] && \
+       [ "$amount" = "9999" ] && \
        [ "$currency" = "brl" ]; then
         print_test_result "Get transaction data integrity check" "PASS"
     else
@@ -117,3 +117,5 @@ test_get_transaction_by_id
 test_get_transaction_not_found
 test_get_transaction_invalid_uuid
 test_get_transaction_data_integrity
+
+# All test payloads and assertions now use integer amounts only.

@@ -39,7 +39,6 @@ This service operates behind an API Gateway that handles authentication and auth
   - `timestamp` (ISO 8601 UTC)
 - Errors:
   - 400 Bad Request — missing/invalid fields, invalid UUID format (uppercase not accepted), invalid currency format
-  - 403 Forbidden — origin not allowed
   - 500 Internal Server Error — DB errors
 
 ### 2) Get transaction by id
@@ -197,13 +196,10 @@ CREATE INDEX idx_transactions_user_ts ON transactions(user_id, timestamp DESC);
 ```sh
 curl -X POST http://localhost:8080/transactions \
   -H "Content-Type: application/json" \
-  -d '{"user_id":"550e8400-e29b-41d4-a716-446655440000","amount":"100.50","currency":"usd"}'
+  -d '{"user_id":"550e8400-e29b-41d4-a716-446655440000","amount":10050,"currency":"usd"}'
 ```
 *Note: Amount 10050 represents $100.50 in cents*
 
 **Note:** `user_id` must be a valid lowercase UUID format.
 
 *Note: In production, this service would be behind an API Gateway that handles authentication and only forwards authorized requests.
-
-
-

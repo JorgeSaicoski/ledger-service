@@ -26,7 +26,7 @@ print_request() {
     echo -e "${GREEN}Request:${NC} $1"
 }
 
-# Example 1: Create a transaction
+# Example 1: Create a transaction (amount is integer, e.g. 10050 = $100.50)
 print_section "Example 1: Create Transaction (Valid)"
 print_request "POST /transactions"
 echo ""
