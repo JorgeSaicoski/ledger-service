@@ -260,10 +260,10 @@ This document outlines all test cases for the Transaction Ledger Service API, or
 | Test Suite | Total Tests | Critical | High Priority | Medium Priority |
 |------------|-------------|----------|---------------|-----------------|
 | POST /transactions | 8 | 0 | 5 (validation) | 3 (functional) |
-| GET /transactions/{id} | 4 | 1 | 2 | 1 |
-| GET /transactions (list) | 7 | 1 | 3 | 3 |
+| GET /transactions/{id} | 4 | 0 | 3 | 1 |
+| GET /transactions (list) | 7 | 0 | 4 | 3 |
 | GET /balance | 7 | 0 | 4 | 3 |
-| **TOTAL** | **26** | **2** | **14** | **10** |
+| **TOTAL** | **26** | **0** | **16** | **10** |
 
 ## Security Architecture
 

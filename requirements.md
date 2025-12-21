@@ -1,4 +1,4 @@
-# Transaction Ledger Service API & Database Requirements
+# Transaction Ledger Service API, Database & Security Architecture
 
 ## Summary
 Create a minimal immutable transaction ledger microservice backed by PostgreSQL. Provide endpoints to create and retrieve transactions and to compute balances per user and per currency. Security and authentication are handled at the API Gateway level.
