@@ -61,9 +61,10 @@ Ledger Service is a simple transaction recording microservice. It stores financi
 - Validates data structure, not business rules
 
 ### What Ledger Service Validates
-- `user_id`: Matches Authentik format (UUID/string pattern)
+- `user_id`: Must be a valid lowercase UUID format (e.g., "550e8400-e29b-41d4-a716-446655440000") and Matches Authentik format (UUID/string pattern)
+- Uppercase UUIDs are **not accepted**
 - `amount`: Valid integer, no decimals allowed
-- `currency`: Alphanumeric string, max length
+- `currency`: Lowercase letters, numbers, and underscores only; max length 32
 - SQL injection prevention (parameterized queries)
 
 ### What Ledger Service Does NOT Validate
@@ -150,7 +151,7 @@ ledger-service/
 
 ## Error Handling
 
-- **400 Bad Request**: Malformed input (missing fields, invalid format)
+- **400 Bad Request**: Malformed input (missing fields, invalid format, uppercase UUID)
 - **500 Internal Server Error**: Database failures
 
 No 404 errors - empty results return empty arrays/zero balances.
