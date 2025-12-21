@@ -14,7 +14,7 @@ var (
 	ErrCurrencyEmpty = errors.New("currency cannot be empty")
 	// ErrCurrencyInvalid indicates currency format is invalid
 	ErrCurrencyInvalid = errors.New("currency must be alphanumeric and max 32 characters")
-	// ErrUserIDInvalid ErrAmountInvalid indicates amount is not a valid number
+	// ErrUserIDInvalid indicates user_id format is invalid
 	ErrUserIDInvalid = errors.New("user_id must be a valid UUID")
 	// ErrUUIDInvalid indicates UUID format is invalid
 	ErrUUIDInvalid = errors.New("invalid UUID format")

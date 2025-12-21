@@ -23,10 +23,9 @@ This implementation provides a complete Test-Driven Development (TDD) test suite
 ### CI/CD Integration
 11. **.github/workflows/tests.yml** - GitHub Actions workflow for automated testing
 
-## Test Coverage: 28 Comprehensive Tests
+## Test Coverage: 26 Comprehensive Tests
 
-### POST /transactions (10 tests)
-- Security: Origin header validation (allowed, disallowed, missing)
+### POST /transactions (8 tests)
 - Validation: Missing fields, empty fields, invalid JSON
 - Functional: Negative amounts, multiple currencies, data integrity
 
@@ -45,7 +44,7 @@ This implementation provides a complete Test-Driven Development (TDD) test suite
 - Single currency balance calculation
 - All balances for a user
 - Edge cases: No transactions, negative balances
-- Precision: Decimal calculations
+- Precision: Integer calculations (no floating-point errors)
 
 ## Key Features
 
@@ -127,7 +126,7 @@ When implementation is complete:
 - Each test is independent - no shared state
 - Test data uses unique identifiers
 - All timestamps and UUIDs are validated
-- Security tests enforce origin-based access control
+- Security and authorization are handled at the API Gateway level
 
 ---
 

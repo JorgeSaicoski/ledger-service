@@ -12,7 +12,7 @@ type TransactionRepository interface {
 	Create(ctx context.Context, req models.TransactionRequest) (*models.Transaction, error)
 	GetByID(ctx context.Context, id string) (*models.Transaction, error)
 	ListByUser(ctx context.Context, userID string, currency *string, limit, offset int) ([]models.Transaction, error)
-	GetBalance(ctx context.Context, userID, currency string) (float64, error)
+	GetBalance(ctx context.Context, userID, currency string) (int, error)
 	GetAllBalances(ctx context.Context, userID string) ([]models.CurrencyBalance, error)
 }
 
@@ -45,7 +45,7 @@ func (r *PostgresTransactionRepository) ListByUser(ctx context.Context, userID s
 }
 
 // GetBalance calculates the balance for a user in a specific currency
-func (r *PostgresTransactionRepository) GetBalance(ctx context.Context, userID, currency string) (float64, error) {
+func (r *PostgresTransactionRepository) GetBalance(ctx context.Context, userID, currency string) (int, error) {
 	// TODO: implement this
 	return 0, nil
 }

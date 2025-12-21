@@ -61,9 +61,9 @@ Ledger Service is a simple transaction recording microservice. It stores financi
 - Validates data structure, not business rules
 
 ### What Ledger Service Validates
-- `user_id`: Must be a valid lowercase UUID format (e.g., "550e8400-e29b-41d4-a716-446655440000")
+- `user_id`: Must be a valid lowercase UUID format (e.g., "550e8400-e29b-41d4-a716-446655440000") and Matches Authentik format (UUID/string pattern)
 - Uppercase UUIDs are **not accepted**
-- `amount`: Valid decimal number, reasonable range
+- `amount`: Valid integer, no decimals allowed
 - `currency`: Lowercase letters, numbers, and underscores only; max length 32
 - SQL injection prevention (parameterized queries)
 
@@ -93,12 +93,13 @@ Ledger Service is a simple transaction recording microservice. It stores financi
 ### Transfer Example (Two Users)
 ```
 Cashier Service orchestrates:
-1. POST /transactions {user_id: "sender", amount: -10, currency: "usd"}
-2. POST /transactions {user_id: "receiver", amount: 10, currency: "usd"}
+1. POST /transactions {user_id: "sender", amount: -1000, currency: "usd"}
+2. POST /transactions {user_id: "receiver", amount: 1000, currency: "usd"}
 
 If one fails, Cashier Service creates compensating transactions.
 Ledger Service does not handle rollbacks.
 ```
+*Note: Amounts are in cents (1000 = $10.00)*
 
 ## Technology Stack
 
@@ -113,7 +114,7 @@ Ledger Service does not handle rollbacks.
 CREATE TABLE transactions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id VARCHAR(100) NOT NULL,
-    amount DECIMAL(19,4) NOT NULL,
+    amount BIGINT NOT NULL,
     currency VARCHAR(20) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -121,6 +122,8 @@ CREATE TABLE transactions (
 CREATE INDEX idx_user_currency ON transactions(user_id, currency);
 CREATE INDEX idx_created_at ON transactions(created_at);
 ```
+
+**Note**: `amount` is stored as BIGINT to hold integer values representing the smallest currency unit (cents, centavos, pesos).
 
 ## API Endpoints
 
@@ -172,10 +175,11 @@ No 404 errors - empty results return empty arrays/zero balances.
 ## Design Decisions
 
 ### Why No Transaction Types (debit/credit)?
-Using signed amounts (`-50` for debit, `+50` for credit) simplifies:
+Using signed integer amounts (`-5000` for $50 debit, `+5000` for $50 credit) simplifies:
 - Balance calculation: just `SUM(amount)`
 - Code: no conditional logic
 - Understanding: the number tells the story
+- Integer storage prevents floating-point precision errors
 
 ### Why No Soft Deletes?
 Financial records are immutable. Corrections use compensating transactions.

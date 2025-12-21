@@ -68,10 +68,11 @@ This document outlines all test cases for the Transaction Ledger Service API, or
 **Test Case 1.3.1: Negative Amount**
 - **Description**: Transaction with negative amount should succeed
 - **Requirement**: README.md - amounts can be negative
-- **Request Body**: {"user_id": "user456", "amount": -75.25, "currency": "usd"}
+- **Request Body**: {"user_id": "user456", "amount": -7525, "currency": "usd"}
 - **Expected**: 201 Created
-- **Verification**: Response amount is -75.25
+- **Verification**: Response amount is -7525 (representing -$75.25)
 - **Script**: test_create_transaction.sh::test_create_transaction_negative_amount
+- **Note**: Amounts are stored in cents (smallest currency unit)
 
 **Test Case 1.3.2: Multiple Currencies**
 - **Description**: Different currency types should be supported
@@ -200,25 +201,27 @@ This document outlines all test cases for the Transaction Ledger Service API, or
 **Test Case 4.1.1: Calculate Single Currency Balance**
 - **Description**: Should sum all amounts for user+currency
 - **Requirement**: requirements.md - balance = SUM(amount)
-- **Setup**: Create transactions: +100, -30, +50 USD
+- **Setup**: Create transactions: +10000, -3000, +5000 USD (in cents)
 - **Request**: GET /balance?user_id=user123&currency=usd
 - **Expected**: 200 OK
-- **Expected Response**: {"user_id": "user123", "currency": "usd", "balance": 120}
+- **Expected Response**: {"user_id": "user123", "currency": "usd", "balance": 12000}
+- **Note**: Balance of 12000 represents $120.00
 - **Script**: test_balance.sh::test_get_balance_single_currency
 
 **Test Case 4.1.2: Balance with Negative Only**
 - **Description**: Balance can be negative
 - **Requirement**: README.md - negative amounts supported
-- **Setup**: Create transactions: -50, -25
+- **Setup**: Create transactions: -5000, -2500 (in cents)
 - **Request**: GET /balance?user_id=user456&currency=usd
-- **Expected**: {"balance": -75}
+- **Expected**: {"balance": -7500}
+- **Note**: Balance of -7500 represents -$75.00
 - **Script**: test_balance.sh::test_get_balance_negative_only
 
-**Test Case 4.1.3: Decimal Precision**
-- **Description**: Should handle decimal amounts correctly
-- **Requirement**: requirements.md - NUMERIC(20,8)
-- **Setup**: Create transactions with decimals
-- **Expected**: Accurate decimal calculation
+**Test Case 4.1.3: Integer Precision**
+- **Description**: Should handle integer amounts correctly
+- **Requirement**: requirements.md - BIGINT for precise calculations
+- **Setup**: Create transactions with various integer amounts
+- **Expected**: Accurate integer calculation (no floating-point errors)
 - **Script**: test_balance.sh::test_get_balance_decimal_precision
 
 **Test Case 4.1.4: Zero Balance**
@@ -235,7 +238,8 @@ This document outlines all test cases for the Transaction Ledger Service API, or
 - **Setup**: Create USD, BRL, and loyalty_points transactions
 - **Request**: GET /balance?user_id=user123
 - **Expected**: 200 OK
-- **Expected Response**: {"user_id": "user123", "balances": [{"currency": "usd", "balance": 120}, ...]}
+- **Expected Response**: {"user_id": "user123", "balances": [{"currency": "usd", "balance": 12000}, ...]}
+- **Note**: All amounts in smallest currency units
 - **Script**: test_balance.sh::test_get_all_balances
 
 **Test Case 4.2.2: Empty Balances**
@@ -259,11 +263,19 @@ This document outlines all test cases for the Transaction Ledger Service API, or
 
 | Test Suite | Total Tests | Critical | High Priority | Medium Priority |
 |------------|-------------|----------|---------------|-----------------|
-| POST /transactions | 10 | 3 (security) | 5 (validation) | 2 (functional) |
-| GET /transactions/{id} | 4 | 1 | 2 | 1 |
-| GET /transactions (list) | 7 | 1 | 3 | 3 |
+| POST /transactions | 8 | 0 | 5 (validation) | 3 (functional) |
+| GET /transactions/{id} | 4 | 0 | 3 | 1 |
+| GET /transactions (list) | 7 | 0 | 4 | 3 |
 | GET /balance | 7 | 0 | 4 | 3 |
-| **TOTAL** | **28** | **5** | **14** | **9** |
+| **TOTAL** | **26** | **0** | **16** | **10** |
+
+## Security Architecture
+
+This service implements a **trust-based security model**:
+- **Authentication and authorization** are handled at the **API Gateway level**
+- The ledger service does not perform origin validation or middleware-based access control
+- All incoming requests are trusted as they have been authenticated by the gateway
+- This approach simplifies the service layer and centralizes security concerns at the gateway
 
 ## Test Data Requirements
 
@@ -277,10 +289,11 @@ This document outlines all test cases for the Transaction Ledger Service API, or
 - brl - Brazilian Real
 - loyalty_points - Non-monetary currency
 
-### Test Amounts
-- Positive: 10, 50, 100, 100.50, 250.75
-- Negative: -25, -30, -75.25
-- Decimals: 99.99, 125.76
+### Test Amounts (in cents/smallest currency unit)
+- Positive: 1000, 5000, 10000, 10050, 25075
+- Negative: -2500, -3000, -7525
+- Examples: 9999, 12576
+- Note: All amounts are integers representing smallest currency units
 
 ## Success Criteria
 
@@ -292,7 +305,7 @@ This document outlines all test cases for the Transaction Ledger Service API, or
 - ✓ UUIDs are valid format
 
 ### Overall Suite
-- ✓ All 28 tests pass
+- ✓ All 26 tests pass
 - ✓ No false positives/negatives
 - ✓ Tests are reproducible
 - ✓ Tests run in < 2 minutes

@@ -46,7 +46,7 @@ test_create_transaction_success() {
         -H "Content-Type: application/json" \
         -d '{
             "user_id": "user123",
-            "amount": 100.50,
+            "amount": 10050,
             "currency": "usd"
         }')
     
@@ -65,7 +65,7 @@ test_create_transaction_success() {
             local currency=$(get_json_field "$body" "currency")
             
             if [ "$user_id" = "user123" ] && \
-               [ "$amount" = "100.5" ] && \
+               [ "$amount" = "10050" ] && \
                [ "$currency" = "usd" ]; then
                 print_test_result "Create transaction with valid data" "PASS"
                 # Write transaction ID to file for use by other tests/scripts
@@ -88,7 +88,7 @@ test_create_transaction_missing_user_id() {
     local response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
         -d '{
-            "amount": 100.00,
+            "amount": 10000,
             "currency": "usd"
         }')
     
@@ -125,7 +125,7 @@ test_create_transaction_missing_currency() {
         -H "Content-Type: application/json" \
         -d '{
             "user_id": "user123",
-            "amount": 100.00
+            "amount": 10000
         }')
     
     local status=$(echo "$response" | tail -n1)
@@ -143,7 +143,7 @@ test_create_transaction_negative_amount() {
         -H "Content-Type: application/json" \
         -d '{
             "user_id": "user456",
-            "amount": -75.25,
+            "amount": -7525,
             "currency": "usd"
         }')
     
@@ -152,7 +152,7 @@ test_create_transaction_negative_amount() {
     
     if check_status_code "$status" 201; then
         local amount=$(get_json_field "$body" "amount")
-        if [ "$amount" = "-75.25" ]; then
+        if [ "$amount" = "-7525" ]; then
             print_test_result "Create transaction with negative amount" "PASS"
         else
             print_test_result "Create transaction with negative amount" "FAIL" "Amount not correctly stored"
@@ -208,7 +208,7 @@ test_create_transaction_empty_user_id() {
         -H "Content-Type: application/json" \
         -d '{
             "user_id": "",
-            "amount": 100.00,
+            "amount": 10000,
             "currency": "usd"
         }')
     
@@ -224,7 +224,7 @@ test_create_transaction_empty_user_id() {
 # Run all tests
 # Use QUIET_OUTPUT=1 when calling _create_transaction in command substitution to get just the ID
 # Create a transaction and capture its ID (quiet)
-QUIET_OUTPUT=1 TRANSACTION_ID="$(_create_transaction "user123" 100.50 "usd")"
+QUIET_OUTPUT=1 TRANSACTION_ID="$(_create_transaction "user123" 10050 "usd")"
 # If previous call failed, fall back to running the verbose test which will also write the ID to file
 if [ -z "$TRANSACTION_ID" ]; then
     test_create_transaction_success

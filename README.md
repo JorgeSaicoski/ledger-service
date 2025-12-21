@@ -31,7 +31,7 @@ Mistakes = new compensating transactions (never delete).
 Transaction:
 - id (uuid, auto-generated)
 - user_id (string, required, lowercase UUID format)
-- amount (decimal, can be negative)
+- amount (integer, can be negative) - stored in smallest currency unit (cents/centavos)
 - currency (string, required, lowercase) - e.g., "usd", "brl", "loyalty_points"
 - timestamp (auto-generated)
 ```
@@ -40,6 +40,14 @@ Transaction:
 - `user_id`: Must be a valid UUID in lowercase format (e.g., "550e8400-e29b-41d4-a716-446655440000")
 - `currency`: Must be lowercase letters, numbers, and underscores only (e.g., "usd", "loyalty_points", "usd2024")
 - Uppercase characters are **not accepted** and will result in a 400 Bad Request error
+
+**Currency Amount Storage:**
+- **USD, BRL**: Store in cents/centavos (e.g., 100 = $1.00 or R$1,00)
+- **UYU**: Store in pesos (smallest unit, no subdivision)
+- **Custom currencies**: Define your own smallest unit
+
+This integer-based approach avoids floating-point precision issues and ensures accurate financial calculations.
+
 
 ## API Endpoints
 
@@ -50,10 +58,11 @@ Create a new transaction
 ```json
 {
   "user_id": "550e8400-e29b-41d4-a716-446655440000",
-  "amount": -50.00,
+  "amount": -5000,
   "currency": "usd"
 }
 ```
+*Note: Amount is -5000 cents = -$50.00*
 
 **Note:** `user_id` must be a valid lowercase UUID format.
 
@@ -62,7 +71,7 @@ Create a new transaction
 {
   "id": "a1b2c3d4-e5f6-4890-abcd-ef1234567890",
   "user_id": "550e8400-e29b-41d4-a716-446655440000",
-  "amount": -50.00,
+  "amount": -5000,
   "currency": "usd",
   "timestamp": "2025-01-15T10:30:00Z"
 }
@@ -80,20 +89,21 @@ Get all transactions for a user in specific currency
     {
       "id": "a1b2c3d4-e5f6-4890-abcd-ef1234567890",
       "user_id": "550e8400-e29b-41d4-a716-446655440000",
-      "amount": 100.00,
+      "amount": 10000,
       "currency": "usd",
       "timestamp": "2025-01-15T10:00:00Z"
     },
     {
       "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
       "user_id": "550e8400-e29b-41d4-a716-446655440000",
-      "amount": -50.00,
+      "amount": -5000,
       "currency": "usd",
       "timestamp": "2025-01-15T10:30:00Z"
     }
   ]
 }
 ```
+*Note: Amounts are in cents (10000 cents = $100.00, -5000 cents = -$50.00)*
 
 ### GET /balance?user_id={id}&currency={currency}
 Get current balance for user in specific currency
@@ -105,9 +115,10 @@ Get current balance for user in specific currency
 {
   "user_id": "550e8400-e29b-41d4-a716-446655440000",
   "currency": "usd",
-  "balance": 50.00
+  "balance": 5000
 }
 ```
+*Note: Balance is 5000 cents = $50.00*
 
 ### GET /balance?user_id={id}
 Get all balances for user across all currencies
@@ -119,20 +130,22 @@ Get all balances for user across all currencies
 {
   "user_id": "550e8400-e29b-41d4-a716-446655440000",
   "balances": [
-    {"currency": "usd", "balance": 50.00},
-    {"currency": "loyalty_points", "balance": 125.00}
+    {"currency": "usd", "balance": 5000},
+    {"currency": "loyalty_points", "balance": 12500}
   ]
 }
 ```
+*Note: Amounts are in smallest currency units (5000 cents = $50.00)*
 
 ## Use Cases
 
 ### Personal Finance Tracking
 User logs expenses and income. Calculator service sums transactions for budget reports.
+Example: Log $15.50 coffee purchase as `amount: -1550` (in cents).
 
 ### Cafe Loyalty System
-- Customer buys coffee → cashier service creates transaction: +10 loyalty_points
-- Customer redeems points → cashier service creates transaction: -10 loyalty_points
+- Customer buys coffee → cashier service creates transaction: +1000 loyalty_points
+- Customer redeems points → cashier service creates transaction: -1000 loyalty_points
 - Customer transfers points → two transactions (one negative, one positive)
 
 ### Multi-User Financial System
@@ -152,6 +165,9 @@ Single responsibility. Other services handle categorization and linking.
 
 **Why positive/negative amounts instead of transaction types?**
 Simpler math. Balance = SUM(amount). No conditional logic needed.
+
+**Why integers instead of decimals?**
+Avoids floating-point precision errors. Financial calculations must be exact. Store amounts in the smallest currency unit (cents, centavos, pesos).
 
 ## Database
 
@@ -197,11 +213,11 @@ This project follows **Test-Driven Development (TDD)** principles. Comprehensive
 
 ### Test Coverage
 
-- **28 comprehensive tests** covering all API endpoints
-- Security validation (origin-based access control)
+- **26 comprehensive tests** covering all API endpoints
 - Input validation (missing fields, invalid data)
 - Functional tests (negative amounts, multiple currencies)
 - Edge cases (empty results, pagination, decimal precision)
+- Security is handled at the API Gateway level (not tested in service layer)
 
 See [tests/README.md](tests/README.md) for detailed documentation.
 
