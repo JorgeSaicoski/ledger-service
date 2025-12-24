@@ -2,9 +2,9 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/bardockgaucho/ledger-service/internal/models"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // TransactionRepository defines the interface for transaction data operations
@@ -18,18 +18,27 @@ type TransactionRepository interface {
 
 // PostgresTransactionRepository implements TransactionRepository using PostgreSQL
 type PostgresTransactionRepository struct {
-	db *sql.DB
+	db *pgxpool.Pool
 }
 
 // NewPostgresTransactionRepository creates a new PostgreSQL repository
-func NewPostgresTransactionRepository(db *sql.DB) *PostgresTransactionRepository {
+func NewPostgresTransactionRepository(db *pgxpool.Pool) *PostgresTransactionRepository {
 	return &PostgresTransactionRepository{db: db}
 }
 
 // Create creates a new transaction in the database
-func (r *PostgresTransactionRepository) Create(ctx context.Context, req models.TransactionRequest) (*models.Transaction, error) {
-	// TODO: implement this
-	return nil, nil
+func (r *PostgresTransactionRepository) Create(ctx context.Context, req models.TransactionRequest) (string, error) {
+	query := `
+		INSERT INTO transactions (user_id, amount, currency) 
+		VALUES ($1, $2, $3) 
+		RETURNING id, user_id, amount, currency
+	`
+	var id string
+	err := r.db.QueryRow(ctx, query, req.UserID, req.Amount, req.Currency).Scan(&id)
+	if err != nil {
+		return "error", err
+	}
+	return id, nil
 }
 
 // GetByID retrieves a transaction by its ID

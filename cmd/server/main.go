@@ -1,7 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"os"
+
+	"github.com/bardockgaucho/ledger-service/internal/repository"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func main() {
@@ -13,6 +17,14 @@ func main() {
 	// 5. Set up routes
 	// 6. Add middleware
 	// 7. Start server
+	ctx := os.Background()
+
+	pool, err := pgxpool.Connect(ctx, os.Getenv("DATABASE_URL"))
+	if err != nil {
+		fmt.Println("unable to connect to database:")
+		panic(err)
+	}
+	repository.NewPostgresTransactionRepository(pool)
 
 	port := os.Getenv("PORT")
 	if port == "" {
