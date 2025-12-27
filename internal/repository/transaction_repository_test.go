@@ -207,7 +207,7 @@ func setupTestDB(t *testing.T) *pgxpool.Pool {
 		// log the dsn that is not working
 		t.Log("TEST_DATABASE_URL:")
 		t.Log(dsn)
-		t.Fatalf("unable to connect to database: %v", err)
+		t.Fatal("unable to connect to database:", err)
 	}
 	testDB = pool
 	return pool
