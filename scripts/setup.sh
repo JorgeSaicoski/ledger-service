@@ -25,10 +25,10 @@ fi
 
 # Create database if it doesn't exist
 echo "[setup.sh] Ensuring database '$PGDATABASE' exists..."
-DB_EXISTS=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname = '$PGDATABASE'" || true)
+DB_EXISTS=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d postgres -v dbname="$PGDATABASE" -tAc "SELECT 1 FROM pg_database WHERE datname = :'dbname'" || true)
 if [ "${DB_EXISTS}" != "1" ]; then
   echo "[setup.sh] Creating database $PGDATABASE..."
-  psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d postgres -c "CREATE DATABASE \"$PGDATABASE\";"
+  psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d postgres -v dbname="$PGDATABASE" -c 'CREATE DATABASE :"dbname";'
 else
   echo "[setup.sh] Database $PGDATABASE already exists."
 fi
