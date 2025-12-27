@@ -8,9 +8,9 @@ set -eu
 
 : "${PGHOST:=localhost}"
 : "${PGPORT:=5432}"
-: "${PGUSER:=postgres}"
-: "${PGPASSWORD:=}"
-: "${PGDATABASE:=ledger}"
+: "${PGUSER:=test}"
+: "${PGPASSWORD:=test123}"
+: "${PGDATABASE:=ledger_db}"
 : "${MIGRATIONS_DIR:=migrations}"
 
 export PGPASSWORD
