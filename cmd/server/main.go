@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -9,22 +10,15 @@ import (
 )
 
 func main() {
-	// TODO: implement this
-	// 1. Set up database connection
-	// 2. Initialize repository
-	// 3. Initialize validator
-	// 4. Initialize handlers
-	// 5. Set up routes
-	// 6. Add middleware
-	// 7. Start server
-	ctx := os.Background()
-
-	pool, err := pgxpool.Connect(ctx, os.Getenv("DATABASE_URL"))
+	ctx := context.Background()
+	pool, err := pgxpool.New(ctx, os.Getenv("DATABASE_URL"))
 	if err != nil {
-		fmt.Println("unable to connect to database:")
-		panic(err)
+		fmt.Printf("unable to connect to database: %v", err)
+		os.Exit(1)
 	}
-	repository.NewPostgresTransactionRepository(pool)
+	defer pool.Close()
+	repo := repository.NewPostgresTransactionRepository(pool)
+	_ = repo // to avoid unused variable error, remove when repo is used
 
 	port := os.Getenv("PORT")
 	if port == "" {

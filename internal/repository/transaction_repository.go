@@ -56,10 +56,7 @@ func (r *PostgresTransactionRepository) GetByID(ctx context.Context, id string) 
 }
 
 // ListByUser retrieves all transactions for a user with optional currency filter
-func (r *PostgresTransactionRepository) ListByUser(ctx context.Context, userID string, currency *string, limit, offset int) ([]models.Transaction, error) {
-	if currency != nil || limit == 0 {
-		return nil, fmt.Errorf("filter not implemented")
-	}
+func (r *PostgresTransactionRepository) ListByUser(ctx context.Context, userID string, limit, offset int) ([]models.Transaction, error) {
 	query := `
 		SELECT id, user_id, amount, currency, timestamp 
 		FROM transactions
@@ -77,5 +74,33 @@ func (r *PostgresTransactionRepository) ListByUser(ctx context.Context, userID s
 }
 
 func (r *PostgresTransactionRepository) ListByUserAndCurrency(ctx context.Context, userID, currency string, limit, offset int) ([]models.Transaction, error) {
-	return nil, fmt.Errorf("filter not implemented")
+	if currency == "" {
+		return nil, fmt.Errorf("currency cannot be empty")
+	}
+	query := `
+		SELECT id, user_id, amount, currency, timestamp
+		FROM transactions
+		WHERE user_id = $1 AND currency = $2
+		ORDER BY timestamp DESC
+		LIMIT $3 OFFSET $4
+	`
+	rows, err := r.db.Query(ctx, query, userID, currency, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var transactions []models.Transaction
+	for rows.Next() {
+		var t models.Transaction
+		err := rows.Scan(&t.ID, &t.UserID, &t.Amount, &t.Currency, &t.Timestamp)
+		if err != nil {
+			return nil, err
+		}
+		transactions = append(transactions, t)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return transactions, nil
 }
