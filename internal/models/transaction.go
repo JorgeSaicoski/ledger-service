@@ -23,25 +23,6 @@ type TransactionListResponse struct {
 	Transactions []Transaction `json:"transactions"`
 }
 
-// BalanceResponse represents the balance for a single currency
-type BalanceResponse struct {
-	UserID   string `json:"user_id"`
-	Currency string `json:"currency"`
-	Balance  int    `json:"balance"`
-}
-
-// AllBalancesResponse represents all balances for a user
-type AllBalancesResponse struct {
-	UserID   string            `json:"user_id"`
-	Balances []CurrencyBalance `json:"balances"`
-}
-
-// CurrencyBalance represents a balance for a specific currency
-type CurrencyBalance struct {
-	Currency string `json:"currency"`
-	Balance  int    `json:"balance"`
-}
-
 // ErrorResponse represents an error response
 type ErrorResponse struct {
 	Error string `json:"error"`

@@ -107,17 +107,6 @@ print_request "GET /transactions?user_id=demo_user_1&limit=2&offset=0"
 echo ""
 curl -s -X GET "$BASE_URL/transactions?user_id=demo_user_1&limit=2&offset=0" | jq '.'
 
-# Example 8: Get balance for user and currency
-print_section "Example 8: Get Balance (Single Currency)"
-print_request "GET /balance?user_id=demo_user_1&currency=usd"
-echo ""
-curl -s -X GET "$BASE_URL/balance?user_id=demo_user_1&currency=usd" | jq '.'
-
-# Example 9: Get all balances for user
-print_section "Example 9: Get All Balances for User"
-print_request "GET /balance?user_id=demo_user_1"
-echo ""
-curl -s -X GET "$BASE_URL/balance?user_id=demo_user_1" | jq '.'
 
 # Example 10: Error cases
 print_section "Example 10: Error Cases"

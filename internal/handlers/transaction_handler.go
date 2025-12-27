@@ -44,13 +44,6 @@ func (h *TransactionHandler) ListTransactions(w http.ResponseWriter, r *http.Req
 	json.NewEncoder(w).Encode(models.ErrorResponse{Error: "not implemented"})
 }
 
-// GetBalance handles GET /balance?user_id=X&currency=Y
-func (h *TransactionHandler) GetBalance(w http.ResponseWriter, r *http.Request) {
-	// TODO: implement this
-	w.WriteHeader(http.StatusNotImplemented)
-	json.NewEncoder(w).Encode(models.ErrorResponse{Error: "not implemented"})
-}
-
 // Helper functions
 
 // writeJSON writes a JSON response with the given status code

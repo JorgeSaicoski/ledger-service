@@ -194,71 +194,6 @@ This document outlines all test cases for the Transaction Ledger Service API, or
 
 ---
 
-### 4. GET /balance
-
-#### 4.1 Single Currency Balance
-
-**Test Case 4.1.1: Calculate Single Currency Balance**
-- **Description**: Should sum all amounts for user+currency
-- **Requirement**: requirements.md - balance = SUM(amount)
-- **Setup**: Create transactions: +10000, -3000, +5000 USD (in cents)
-- **Request**: GET /balance?user_id=user123&currency=usd
-- **Expected**: 200 OK
-- **Expected Response**: {"user_id": "user123", "currency": "usd", "balance": 12000}
-- **Note**: Balance of 12000 represents $120.00
-- **Script**: test_balance.sh::test_get_balance_single_currency
-
-**Test Case 4.1.2: Balance with Negative Only**
-- **Description**: Balance can be negative
-- **Requirement**: README.md - negative amounts supported
-- **Setup**: Create transactions: -5000, -2500 (in cents)
-- **Request**: GET /balance?user_id=user456&currency=usd
-- **Expected**: {"balance": -7500}
-- **Note**: Balance of -7500 represents -$75.00
-- **Script**: test_balance.sh::test_get_balance_negative_only
-
-**Test Case 4.1.3: Integer Precision**
-- **Description**: Should handle integer amounts correctly
-- **Requirement**: requirements.md - BIGINT for precise calculations
-- **Setup**: Create transactions with various integer amounts
-- **Expected**: Accurate integer calculation (no floating-point errors)
-- **Script**: test_balance.sh::test_get_balance_decimal_precision
-
-**Test Case 4.1.4: Zero Balance**
-- **Description**: Should return 0 for user with no transactions
-- **Request**: GET /balance?user_id=new_user&currency=usd
-- **Expected**: {"balance": 0}
-- **Script**: test_balance.sh::test_get_balance_no_transactions
-
-#### 4.2 All Balances
-
-**Test Case 4.2.1: Multiple Currency Balances**
-- **Description**: Should return balances for all currencies
-- **Requirement**: requirements.md - GET /balance?user_id={}
-- **Setup**: Create USD, BRL, and loyalty_points transactions
-- **Request**: GET /balance?user_id=user123
-- **Expected**: 200 OK
-- **Expected Response**: {"user_id": "user123", "balances": [{"currency": "usd", "balance": 12000}, ...]}
-- **Note**: All amounts in smallest currency units
-- **Script**: test_balance.sh::test_get_all_balances
-
-**Test Case 4.2.2: Empty Balances**
-- **Description**: Should return empty array for user with no transactions
-- **Request**: GET /balance?user_id=new_user
-- **Expected**: 200 OK with empty balances array
-- **Script**: test_balance.sh::test_get_all_balances_no_transactions
-
-#### 4.3 Validation Tests
-
-**Test Case 4.3.1: Missing User ID**
-- **Description**: Should fail when user_id not provided
-- **Requirement**: requirements.md - user_id required
-- **Request**: GET /balance?currency=usd
-- **Expected**: 400 Bad Request
-- **Script**: test_balance.sh::test_get_balance_missing_user_id
-
----
-
 ## Test Execution Matrix
 
 | Test Suite | Total Tests | Critical | High Priority | Medium Priority |
@@ -266,8 +201,7 @@ This document outlines all test cases for the Transaction Ledger Service API, or
 | POST /transactions | 8 | 0 | 5 (validation) | 3 (functional) |
 | GET /transactions/{id} | 4 | 0 | 3 | 1 |
 | GET /transactions (list) | 7 | 0 | 4 | 3 |
-| GET /balance | 7 | 0 | 4 | 3 |
-| **TOTAL** | **26** | **0** | **16** | **10** |
+| **TOTAL** | **19** | **0** | **12** | **7** |
 
 ## Security Architecture
 
@@ -305,7 +239,7 @@ This service implements a **trust-based security model**:
 - ✓ UUIDs are valid format
 
 ### Overall Suite
-- ✓ All 26 tests pass
+- ✓ All 19 tests pass
 - ✓ No false positives/negatives
 - ✓ Tests are reproducible
 - ✓ Tests run in < 2 minutes
