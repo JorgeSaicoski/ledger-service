@@ -36,7 +36,7 @@ func (r *PostgresTransactionRepository) Create(ctx context.Context, req models.T
 	var id string
 	err := r.db.QueryRow(ctx, query, req.UserID, req.Amount, req.Currency).Scan(&id)
 	if err != nil {
-		return "error", err
+		return "", err
 	}
 	return id, nil
 }
