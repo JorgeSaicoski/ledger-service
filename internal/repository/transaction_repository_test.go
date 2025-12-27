@@ -39,18 +39,26 @@ func TestCreate_Success(t *testing.T) {
 
 // TestCreate_NegativeAmount tests creating transaction with negative amount
 func TestCreate_NegativeAmount(t *testing.T) {
-	t.Skip("Implement after setting up test database")
+	db := setupTestDB(t)
+	defer cleanupTestDB(t)
+	repo := NewPostgresTransactionRepository(db)
 
-	// Test that negative amounts are properly stored
-	// req := models.TransactionRequest{
-	// 	UserID:   "user456",
-	// 	Amount:   -75.25,
-	// 	Currency: "usd",
-	// }
+	req := models.TransactionRequest{
+		UserID:   "user123",
+		Amount:   -14250,
+		Currency: "usd",
+	}
 
-	// result, err := repo.Create(context.Background(), req)
-	// require.NoError(t, err)
-	// assert.Equal(t, -75.25, result.Amount)
+	result, err := repo.Create(context.Background(), req)
+
+	require.NoError(t, err)
+	assert.NotEmpty(t, result)
+
+	transaction, err := repo.GetByID(context.Background(), result)
+	require.NoError(t, err)
+	assert.Equal(t, "user123", transaction.UserID)
+	assert.Equal(t, 10050, transaction.Amount)
+	assert.Equal(t, "usd", transaction.Currency)
 }
 
 // TestCreate_DifferentCurrencies tests creating transactions with various currencies

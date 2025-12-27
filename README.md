@@ -7,7 +7,7 @@ A simple, reusable microservice for recording financial movements. Does one thin
 - Receives transaction data (user_id, amount, currency)
 - Stores it with timestamp
 - Returns transaction_id
-- Calculates balances per user per currency
+
 
 ## What This Service Does NOT Do
 
@@ -16,8 +16,9 @@ A simple, reusable microservice for recording financial movements. Does one thin
 - Transaction linking (grouping related transactions)
 - Budget enforcement
 - Analytics
+- Calculates balances
 
-Those are responsibilities of consuming services.
+Those are the responsibilities of consuming services.
 
 ## Core Concept
 
