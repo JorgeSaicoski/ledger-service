@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/bardockgaucho/ledger-service/internal/models"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -43,13 +44,37 @@ func (r *PostgresTransactionRepository) Create(ctx context.Context, req models.T
 
 // GetByID retrieves a transaction by its ID
 func (r *PostgresTransactionRepository) GetByID(ctx context.Context, id string) (*models.Transaction, error) {
-	// TODO: implement this
-	return nil, nil
+	query := `
+		SELECT id, user_id, amount, currency, timestamp 
+		FROM transactions
+		WHERE id = $1
+	`
+	var transaction models.Transaction
+	err := r.db.QueryRow(ctx, query, id).Scan(&transaction.ID, &transaction.UserID, &transaction.Amount, &transaction.Currency, &transaction.Timestamp)
+	if err != nil {
+		return nil, err
+	}
+	return &transaction, nil
 }
 
 // ListByUser retrieves all transactions for a user with optional currency filter
 func (r *PostgresTransactionRepository) ListByUser(ctx context.Context, userID string, currency *string, limit, offset int) ([]models.Transaction, error) {
-	// TODO: implement this
+	if currency != nil || limit == 0 {
+		return nil, fmt.Errorf("filter not implemented")
+	}
+	query := `
+		SELECT id, user_id, amount, currency, timestamp 
+		FROM transactions
+		WHERE user_id = $1
+		ORDER BY timestamp DESC
+		LIMIT $2 OFFSET $3
+	`
+	var transactions []models.Transaction
+	err := r.db.QueryRow(ctx, query, userID, limit, offset).Scan(&transactions)
+	if err != nil {
+		return nil, err
+	}
+
 	return []models.Transaction{}, nil
 }
 
