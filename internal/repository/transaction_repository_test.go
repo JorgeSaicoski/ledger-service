@@ -29,7 +29,12 @@ func TestCreate_Success(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.NotEmpty(t, result)
-	// call GetByID and check if userID, amount, currency are correct
+
+	transaction, err := repo.GetByID(context.Background(), result)
+	require.NoError(t, err)
+	assert.Equal(t, "user123", transaction.UserID)
+	assert.Equal(t, 10050, transaction.Amount)
+	assert.Equal(t, "usd", transaction.Currency)
 }
 
 // TestCreate_NegativeAmount tests creating transaction with negative amount
@@ -57,11 +62,24 @@ func TestCreate_DifferentCurrencies(t *testing.T) {
 
 // TestGetByID_Success tests retrieving an existing transaction
 func TestGetByID_Success(t *testing.T) {
-	t.Skip("Implement after setting up test database")
+	db := setupTestDB(t)
+	defer cleanupTestDB(t)
+	repo := NewPostgresTransactionRepository(db)
 
-	// Create a transaction first
-	// Then retrieve it by ID
-	// Verify all fields match
+	req := models.TransactionRequest{
+		UserID:   "user123",
+		Amount:   10050,
+		Currency: "usd",
+	}
+
+	result, err := repo.Create(context.Background(), req)
+	require.NoError(t, err)
+
+	transaction, err := repo.GetByID(context.Background(), result)
+	require.NoError(t, err)
+	assert.Equal(t, req.UserID, transaction.UserID)
+	assert.Equal(t, req.Amount, transaction.Amount)
+	assert.Equal(t, req.Currency, transaction.Currency)
 }
 
 // TestGetByID_NotFound tests retrieving a non-existent transaction
