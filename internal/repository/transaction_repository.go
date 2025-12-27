@@ -13,8 +13,6 @@ type TransactionRepository interface {
 	Create(ctx context.Context, req models.TransactionRequest) (*models.Transaction, error)
 	GetByID(ctx context.Context, id string) (*models.Transaction, error)
 	ListByUser(ctx context.Context, userID string, currency *string, limit, offset int) ([]models.Transaction, error)
-	GetBalance(ctx context.Context, userID, currency string) (int, error)
-	GetAllBalances(ctx context.Context, userID string) ([]models.CurrencyBalance, error)
 }
 
 // PostgresTransactionRepository implements TransactionRepository using PostgreSQL
@@ -78,14 +76,6 @@ func (r *PostgresTransactionRepository) ListByUser(ctx context.Context, userID s
 	return []models.Transaction{}, nil
 }
 
-// GetBalance calculates the balance for a user in a specific currency
-func (r *PostgresTransactionRepository) GetBalance(ctx context.Context, userID, currency string) (int, error) {
-	// TODO: implement this
-	return 0, nil
-}
-
-// GetAllBalances calculates balances for a user across all currencies
-func (r *PostgresTransactionRepository) GetAllBalances(ctx context.Context, userID string) ([]models.CurrencyBalance, error) {
-	// TODO: implement this
-	return []models.CurrencyBalance{}, nil
+func (r *PostgresTransactionRepository) ListByUserAndCurrency(ctx context.Context, userID, currency string, limit, offset int) ([]models.Transaction, error) {
+	return nil, fmt.Errorf("filter not implemented")
 }
