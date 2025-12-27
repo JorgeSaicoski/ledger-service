@@ -10,7 +10,7 @@ set -eu
 : "${PGPORT:=5432}"
 : "${PGUSER:=postgres}"
 : "${PGPASSWORD:=}"
-: "${PGDATABASE:=ledger}"
+: "${PGDATABASE:=ledger_db}"
 : "${MIGRATIONS_DIR:=migrations}"
 
 export PGPASSWORD
