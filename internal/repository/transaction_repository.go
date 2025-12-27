@@ -31,7 +31,7 @@ func (r *PostgresTransactionRepository) Create(ctx context.Context, req models.T
 	query := `
 		INSERT INTO transactions (user_id, amount, currency) 
 		VALUES ($1, $2, $3) 
-		RETURNING id, user_id, amount, currency
+		RETURNING id
 	`
 	var id string
 	err := r.db.QueryRow(ctx, query, req.UserID, req.Amount, req.Currency).Scan(&id)
