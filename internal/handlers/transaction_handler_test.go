@@ -34,10 +34,6 @@ func (m *MockTransactionRepository) ListByUser(ctx context.Context, userID strin
 	return args.Get(0).([]models.Transaction), args.Error(1)
 }
 
-func (m *MockTransactionRepository) ListByUserAndCurrency(ctx context.Context, userID, currency string, limit, offset int) ([]models.Transaction, error) {
-	args := m.Called(ctx, userID, currency, limit, offset)
-	return args.Get(0).([]models.Transaction), args.Error(1)
-}
 func TestCreateTransaction_Success(t *testing.T) {
 	t.Skip("Implement after handler is complete")
 
