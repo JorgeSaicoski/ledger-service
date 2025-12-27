@@ -8,7 +8,7 @@ set -eu
 
 : "${PGHOST:=localhost}"
 : "${PGPORT:=5432}"
-: "${PGUSER:=postgres}"
+: "${PGUSER:=test}"
 : "${PGPASSWORD:=}"
 : "${PGDATABASE:=ledger_db}"
 : "${MIGRATIONS_DIR:=migrations}"
