@@ -34,18 +34,6 @@ func (m *MockTransactionRepository) ListByUser(ctx context.Context, userID strin
 	return args.Get(0).([]models.Transaction), args.Error(1)
 }
 
-func (m *MockTransactionRepository) GetBalance(ctx context.Context, userID, currency string) (int, error) {
-	args := m.Called(ctx, userID, currency)
-	return args.Get(0).(int), args.Error(1)
-}
-
-func (m *MockTransactionRepository) GetAllBalances(ctx context.Context, userID string) ([]models.CurrencyBalance, error) {
-	args := m.Called(ctx, userID)
-	return args.Get(0).([]models.CurrencyBalance), args.Error(1)
-}
-
-// Test CreateTransaction endpoint
-
 func TestCreateTransaction_Success(t *testing.T) {
 	t.Skip("Implement after handler is complete")
 
@@ -174,43 +162,4 @@ func TestListTransactions_EmptyResult(t *testing.T) {
 
 	// Mock repository to return empty array
 	// Verify 200 response with empty transactions array
-}
-
-// Test GetBalance endpoint
-
-func TestGetBalance_SingleCurrency(t *testing.T) {
-	t.Skip("Implement after handler is complete")
-
-	// Mock repository to return balance
-	// Make request with user_id and currency
-	// Verify 200 response with balance
-}
-
-func TestGetBalance_AllCurrencies(t *testing.T) {
-	t.Skip("Implement after handler is complete")
-
-	// Mock repository to return multiple balances
-	// Make request with only user_id
-	// Verify 200 response with balances array
-}
-
-func TestGetBalance_MissingUserID(t *testing.T) {
-	t.Skip("Implement after handler is complete")
-
-	// Make request without user_id
-	// Verify 400 response
-}
-
-func TestGetBalance_Zero(t *testing.T) {
-	t.Skip("Implement after handler is complete")
-
-	// Mock repository to return 0 balance
-	// Verify 200 response with 0 balance
-}
-
-func TestGetBalance_Negative(t *testing.T) {
-	t.Skip("Implement after handler is complete")
-
-	// Mock repository to return negative balance
-	// Verify 200 response with negative balance
 }

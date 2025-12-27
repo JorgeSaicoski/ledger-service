@@ -1,18 +1,31 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"os"
+
+	"github.com/bardockgaucho/ledger-service/internal/repository"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func main() {
-	// TODO: implement this
-	// 1. Set up database connection
-	// 2. Initialize repository
-	// 3. Initialize validator
-	// 4. Initialize handlers
-	// 5. Set up routes
-	// 6. Add middleware
-	// 7. Start server
+	ctx := context.Background()
+
+	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		fmt.Println("DATABASE_URL environment variable is not set")
+		os.Exit(1)
+	}
+
+	pool, err := pgxpool.New(ctx, dbURL)
+	if err != nil {
+		fmt.Printf("unable to connect to database: %v", err)
+		os.Exit(1)
+	}
+	defer pool.Close()
+	repo := repository.NewPostgresTransactionRepository(pool)
+	_ = repo // to avoid unused variable error, remove when repo is used
 
 	port := os.Getenv("PORT")
 	if port == "" {

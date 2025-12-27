@@ -7,7 +7,7 @@ A simple, reusable microservice for recording financial movements. Does one thin
 - Receives transaction data (user_id, amount, currency)
 - Stores it with timestamp
 - Returns transaction_id
-- Calculates balances per user per currency
+
 
 ## What This Service Does NOT Do
 
@@ -16,8 +16,9 @@ A simple, reusable microservice for recording financial movements. Does one thin
 - Transaction linking (grouping related transactions)
 - Budget enforcement
 - Analytics
+- Calculates balances
 
-Those are responsibilities of consuming services.
+Those are the responsibilities of consuming services.
 
 ## Core Concept
 
@@ -104,38 +105,6 @@ Get all transactions for a user in specific currency
 }
 ```
 *Note: Amounts are in cents (10000 cents = $100.00, -5000 cents = -$50.00)*
-
-### GET /balance?user_id={id}&currency={currency}
-Get current balance for user in specific currency
-
-**Note:** `user_id` parameter must be a valid lowercase UUID format.
-
-**Response:**
-```json
-{
-  "user_id": "550e8400-e29b-41d4-a716-446655440000",
-  "currency": "usd",
-  "balance": 5000
-}
-```
-*Note: Balance is 5000 cents = $50.00*
-
-### GET /balance?user_id={id}
-Get all balances for user across all currencies
-
-**Note:** `user_id` parameter must be a valid lowercase UUID format.
-
-**Response:**
-```json
-{
-  "user_id": "550e8400-e29b-41d4-a716-446655440000",
-  "balances": [
-    {"currency": "usd", "balance": 5000},
-    {"currency": "loyalty_points", "balance": 12500}
-  ]
-}
-```
-*Note: Amounts are in smallest currency units (5000 cents = $50.00)*
 
 ## Use Cases
 

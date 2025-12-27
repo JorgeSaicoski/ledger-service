@@ -1,48 +1,64 @@
 package repository
 
 import (
+	"context"
+	"os"
 	"testing"
+
+	"github.com/bardockgaucho/ledger-service/internal/models"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
+
+var testDB *pgxpool.Pool
 
 // TestCreate_Success tests successful transaction creation
 func TestCreate_Success(t *testing.T) {
-	// TODO: Setup test database
-	// db := setupTestDB(t)
-	// defer cleanupTestDB(t, db)
-	// repo := NewPostgresTransactionRepository(db)
+	db := setupTestDB(t)
+	defer cleanupTestDB(t)
+	repo := NewPostgresTransactionRepository(db)
 
-	t.Skip("Implement after setting up test database")
+	req := models.TransactionRequest{
+		UserID:   "user123",
+		Amount:   10050,
+		Currency: "usd",
+	}
 
-	// req := models.TransactionRequest{
-	// 	UserID:   "user123",
-	// 	Amount:   100.50,
-	// 	Currency: "usd",
-	// }
+	result, err := repo.Create(context.Background(), req)
 
-	// result, err := repo.Create(context.Background(), req)
+	require.NoError(t, err)
+	assert.NotEmpty(t, result)
 
-	// require.NoError(t, err)
-	// assert.NotEmpty(t, result.ID)
-	// assert.Equal(t, req.UserID, result.UserID)
-	// assert.Equal(t, req.Amount, result.Amount)
-	// assert.Equal(t, req.Currency, result.Currency)
-	// assert.WithinDuration(t, time.Now(), result.Timestamp, 2*time.Second)
+	transaction, err := repo.GetByID(context.Background(), result)
+	require.NoError(t, err)
+	assert.Equal(t, "user123", transaction.UserID)
+	assert.Equal(t, 10050, transaction.Amount)
+	assert.Equal(t, "usd", transaction.Currency)
 }
 
 // TestCreate_NegativeAmount tests creating transaction with negative amount
 func TestCreate_NegativeAmount(t *testing.T) {
-	t.Skip("Implement after setting up test database")
+	db := setupTestDB(t)
+	defer cleanupTestDB(t)
+	repo := NewPostgresTransactionRepository(db)
 
-	// Test that negative amounts are properly stored
-	// req := models.TransactionRequest{
-	// 	UserID:   "user456",
-	// 	Amount:   -75.25,
-	// 	Currency: "usd",
-	// }
+	req := models.TransactionRequest{
+		UserID:   "user123",
+		Amount:   -14250,
+		Currency: "usd",
+	}
 
-	// result, err := repo.Create(context.Background(), req)
-	// require.NoError(t, err)
-	// assert.Equal(t, -75.25, result.Amount)
+	result, err := repo.Create(context.Background(), req)
+
+	require.NoError(t, err)
+	assert.NotEmpty(t, result)
+
+	transaction, err := repo.GetByID(context.Background(), result)
+	require.NoError(t, err)
+	assert.Equal(t, "user123", transaction.UserID)
+	assert.Equal(t, 10050, transaction.Amount)
+	assert.Equal(t, "usd", transaction.Currency)
 }
 
 // TestCreate_DifferentCurrencies tests creating transactions with various currencies
@@ -54,11 +70,24 @@ func TestCreate_DifferentCurrencies(t *testing.T) {
 
 // TestGetByID_Success tests retrieving an existing transaction
 func TestGetByID_Success(t *testing.T) {
-	t.Skip("Implement after setting up test database")
+	db := setupTestDB(t)
+	defer cleanupTestDB(t)
+	repo := NewPostgresTransactionRepository(db)
 
-	// Create a transaction first
-	// Then retrieve it by ID
-	// Verify all fields match
+	req := models.TransactionRequest{
+		UserID:   "user123",
+		Amount:   10050,
+		Currency: "usd",
+	}
+
+	result, err := repo.Create(context.Background(), req)
+	require.NoError(t, err)
+
+	transaction, err := repo.GetByID(context.Background(), result)
+	require.NoError(t, err)
+	assert.Equal(t, req.UserID, transaction.UserID)
+	assert.Equal(t, req.Amount, transaction.Amount)
+	assert.Equal(t, req.Currency, transaction.Currency)
 }
 
 // TestGetByID_NotFound tests retrieving a non-existent transaction
@@ -168,18 +197,35 @@ func TestGetAllBalances_EmptyResult(t *testing.T) {
 	// Should return empty array, not error
 }
 
-// Helper functions that will be implemented
+// setupTestDB creates a test database instance and clears existing data
+func setupTestDB(t *testing.T) *pgxpool.Pool {
+	t.Helper()
+	dsn := os.Getenv("TEST_DATABASE_URL")
+	if dsn == "" {
+		dsn = "postgres://test:test123@localhost:5432/ledger_db_test?sslmode=disable"
+	}
+	pool, err := pgxpool.New(context.Background(), dsn)
+	if err != nil {
+		t.Log("TEST_DATABASE_URL:")
+		t.Log(dsn)
+		t.Fatal("unable to connect to database:", err)
+	}
 
-// setupTestDB creates a test database instance
-func setupTestDB(t *testing.T) {
-	// TODO: Create test database connection
-	// TODO: Run migrations
-	t.Skip("Database setup not implemented")
+	// Clear existing test data
+	_, err = pool.Exec(context.Background(), "TRUNCATE TABLE transactions")
+	if err != nil {
+		pool.Close()
+		t.Fatal("unable to truncate transactions table:", err)
+	}
+
+	testDB = pool
+	return pool
 }
 
-// cleanupTestDB cleans up test database
+// cleanupTestDB closes the database connection
 func cleanupTestDB(t *testing.T) {
-	// TODO: Clean test data
-	// TODO: Close database connection
-	t.Skip("Database cleanup not implemented")
+	t.Helper()
+	if testDB != nil {
+		testDB.Close()
+	}
 }
