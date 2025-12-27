@@ -9,7 +9,7 @@ set -eu
 : "${PGHOST:=localhost}"
 : "${PGPORT:=5432}"
 : "${PGUSER:=test}"
-: "${PGPASSWORD:=}"
+: "${PGPASSWORD:=test123}"
 : "${PGDATABASE:=ledger_db}"
 : "${MIGRATIONS_DIR:=migrations}"
 
