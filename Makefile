@@ -1,62 +1,36 @@
 # Makefile: database migration helpers
 
-# Detect if podman or docker is available
+.PHONY: migrate-db migrate-db-test start-db start-db-test
+
+# Detect container runtime
 CONTAINER_CMD := $(shell command -v podman 2> /dev/null || command -v docker 2> /dev/null)
 COMPOSE_CMD := $(shell command -v podman-compose 2> /dev/null || command -v docker-compose 2> /dev/null)
 
-.PHONY: start-db start-db-test stop-db stop-db-test migrate-db migrate-db-test
+# Run migrations against production database (localhost:5432)
+migrate-db:
+	@echo "Running migrations against production database..."
+	@for f in migrations/*.sql; do \
+		echo "Applying migration: $$f"; \
+		$(CONTAINER_CMD) exec -i postgres psql -U postgres -d ledger_db -v ON_ERROR_STOP=1 < $$f; \
+	done
+	@echo "✓ Production database migration complete!"
 
-# Start production database (postgres on port 5432)
+# Run migrations against test database (localhost:5433)
+migrate-db-test:
+	@echo "Running migrations against test database..."
+	@for f in migrations/*.sql; do \
+		echo "Applying migration: $$f"; \
+		$(CONTAINER_CMD) exec -i postgres psql -U test -d ledger_db_test -v ON_ERROR_STOP=1 < $$f; \
+	done
+	@echo "✓ Test database migration complete!"
+
+# Optional: Start databases using docker/podman if needed
+
 start-db:
 	@echo "Starting production database using $(COMPOSE_CMD)..."
 	@$(COMPOSE_CMD) up -d postgres
-	@echo "Waiting for database to be ready..."
-	@sleep 3
 
-# Start test database (postgres-test on port 5433)
 start-db-test:
 	@echo "Starting test database using $(COMPOSE_CMD)..."
 	@$(COMPOSE_CMD) up -d postgres-test
-	@echo "Waiting for test database to be ready..."
-	@sleep 3
 
-# Stop production database
-stop-db:
-	@echo "Stopping production database..."
-	@$(COMPOSE_CMD) stop postgres
-
-# Stop test database
-stop-db-test:
-	@echo "Stopping test database..."
-	@$(COMPOSE_CMD) stop postgres-test
-
-# Stop all databases and remove volumes
-stop-db-all:
-	@echo "Stopping all databases and removing volumes..."
-	@$(COMPOSE_CMD) down -v
-
-# Run migrations against production database (creates db and runs migrations)
-migrate-db: start-db
-	@echo "Running migrations against production database..."
-	@sleep 2
-	@PGHOST=localhost \
-	 PGPORT=5432 \
-	 PGUSER=postgres \
-	 PGPASSWORD=postgres \
-	 PGDATABASE=ledger \
-	 MIGRATIONS_DIR=migrations \
-	 ./scripts/setup.sh
-	@echo "✓ Production database migration complete!"
-
-# Run migrations against test database (creates db and runs migrations)
-migrate-db-test: start-db-test
-	@echo "Running migrations against test database..."
-	@sleep 2
-	@PGHOST=localhost \
-	 PGPORT=5433 \
-	 PGUSER=test \
-	 PGPASSWORD=test123 \
-	 PGDATABASE=ledger_db_test \
-	 MIGRATIONS_DIR=migrations \
-	 ./scripts/setup.sh
-	@echo "✓ Test database migration complete!"
