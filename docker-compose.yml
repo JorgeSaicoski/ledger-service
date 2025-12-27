@@ -5,32 +5,16 @@ services:
     image: postgres:15-alpine
     container_name: ledger-postgres
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: ledger
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test123
+      POSTGRES_DB: ledger_db
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  postgres-test:
-    image: postgres:15-alpine
-    container_name: ledger-postgres-test
-    environment:
-      POSTGRES_USER: test
-      POSTGRES_PASSWORD: test123
-      POSTGRES_DB: ledger_db_test
-    ports:
-      - "5433:5432"
-    volumes:
-      - postgres_test_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U test"]
       interval: 5s
       timeout: 5s
       retries: 5
