@@ -189,14 +189,8 @@ func TestGetAllBalances_EmptyResult(t *testing.T) {
 	// Should return empty array, not error
 }
 
-// Helper functions that will be implemented
-
-// setupTestDB creates a test database instance
+// setupTestDB creates a test database instance and clears existing data
 func setupTestDB(t *testing.T) *pgxpool.Pool {
-	// TODO: Create test database connection
-	// TODO: Run migrations
-	// Explain why t.Helper() is needed
-	// See https://pkg.go.dev/testing#T.Helper
 	t.Helper()
 	dsn := os.Getenv("TEST_DATABASE_URL")
 	if dsn == "" {
@@ -204,16 +198,23 @@ func setupTestDB(t *testing.T) *pgxpool.Pool {
 	}
 	pool, err := pgxpool.New(context.Background(), dsn)
 	if err != nil {
-		// log the dsn that is not working
 		t.Log("TEST_DATABASE_URL:")
 		t.Log(dsn)
 		t.Fatal("unable to connect to database:", err)
 	}
+
+	// Clear existing test data
+	_, err = pool.Exec(context.Background(), "TRUNCATE TABLE transactions")
+	if err != nil {
+		pool.Close()
+		t.Fatal("unable to truncate transactions table:", err)
+	}
+
 	testDB = pool
 	return pool
 }
 
-// cleanupTestDB cleans up test database
+// cleanupTestDB closes the database connection
 func cleanupTestDB(t *testing.T) {
 	t.Helper()
 	if testDB != nil {

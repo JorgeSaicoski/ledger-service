@@ -5,12 +5,13 @@ import (
 	"fmt"
 
 	"github.com/bardockgaucho/ledger-service/internal/models"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // TransactionRepository defines the interface for transaction data operations
 type TransactionRepository interface {
-	Create(ctx context.Context, req models.TransactionRequest) (*models.Transaction, error)
+	Create(ctx context.Context, req models.TransactionRequest) (string, error)
 	GetByID(ctx context.Context, id string) (*models.Transaction, error)
 	ListByUser(ctx context.Context, userID string, currency *string, limit, offset int) ([]models.Transaction, error)
 }
@@ -56,40 +57,32 @@ func (r *PostgresTransactionRepository) GetByID(ctx context.Context, id string) 
 }
 
 // ListByUser retrieves all transactions for a user with optional currency filter
-func (r *PostgresTransactionRepository) ListByUser(ctx context.Context, userID string, limit, offset int) ([]models.Transaction, error) {
+func (r *PostgresTransactionRepository) ListByUser(ctx context.Context, userID string, currency *string, limit, offset int) ([]models.Transaction, error) {
 	query := `
-		SELECT id, user_id, amount, currency, timestamp 
-		FROM transactions
-		WHERE user_id = $1
-		ORDER BY timestamp DESC
-		LIMIT $2 OFFSET $3
-	`
-	var transactions []models.Transaction
-	err := r.db.QueryRow(ctx, query, userID, limit, offset).Scan(&transactions)
-	if err != nil {
-		return nil, err
+	  SELECT id, user_id, amount, currency, timestamp
+	  FROM transactions
+	  WHERE user_id = $1
+	 `
+	args := []interface{}{userID}
+
+	if currency != nil && *currency != "" {
+		query += ` AND currency = $2`
+		args = append(args, *currency)
 	}
 
-	return []models.Transaction{}, nil
-}
+	query += ` ORDER BY timestamp DESC LIMIT $` + fmt.Sprintf("%d", len(args)+1) + ` OFFSET $` + fmt.Sprintf("%d", len(args)+2)
+	args = append(args, limit, offset)
 
-func (r *PostgresTransactionRepository) ListByUserAndCurrency(ctx context.Context, userID, currency string, limit, offset int) ([]models.Transaction, error) {
-	if currency == "" {
-		return nil, fmt.Errorf("currency cannot be empty")
-	}
-	query := `
-		SELECT id, user_id, amount, currency, timestamp
-		FROM transactions
-		WHERE user_id = $1 AND currency = $2
-		ORDER BY timestamp DESC
-		LIMIT $3 OFFSET $4
-	`
-	rows, err := r.db.Query(ctx, query, userID, currency, limit, offset)
+	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
+	return r.scanTransactions(rows)
+}
+
+func (r *PostgresTransactionRepository) scanTransactions(rows pgx.Rows) ([]models.Transaction, error) {
 	var transactions []models.Transaction
 	for rows.Next() {
 		var t models.Transaction
@@ -99,8 +92,5 @@ func (r *PostgresTransactionRepository) ListByUserAndCurrency(ctx context.Contex
 		}
 		transactions = append(transactions, t)
 	}
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-	return transactions, nil
+	return transactions, rows.Err()
 }
