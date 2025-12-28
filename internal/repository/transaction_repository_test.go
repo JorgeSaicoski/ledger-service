@@ -57,15 +57,46 @@ func TestCreate_NegativeAmount(t *testing.T) {
 	transaction, err := repo.GetByID(context.Background(), result)
 	require.NoError(t, err)
 	assert.Equal(t, "user123", transaction.UserID)
-	assert.Equal(t, 10050, transaction.Amount)
+	assert.Equal(t, -14250, transaction.Amount)
 	assert.Equal(t, "usd", transaction.Currency)
 }
 
 // TestCreate_DifferentCurrencies tests creating transactions with various currencies
 func TestCreate_DifferentCurrencies(t *testing.T) {
-	t.Skip("Implement after setting up test database")
+	db := setupTestDB(t)
+	defer cleanupTestDB(t)
+	repo := NewPostgresTransactionRepository(db)
 
-	// Test multiple currency types: usd, brl, loyalty_points
+	testCurrencies := []string{"usd", "brl", "eur", "loyalty_points", "reward_tokens"}
+	for _, currency := range testCurrencies {
+		result, err := repo.Create(context.Background(), models.TransactionRequest{
+			UserID:   "user123",
+			Amount:   10050,
+			Currency: currency,
+		})
+		require.NoError(t, err)
+		assert.NotEmpty(t, result)
+	}
+	transactions, err := repo.ListByUser(context.Background(), "user123", nil, 10, 0)
+	require.NoError(t, err)
+	assert.Equal(t, len(testCurrencies), len(transactions))
+
+	remainingCurrencies := make([]string, len(testCurrencies))
+	copy(remainingCurrencies, testCurrencies)
+
+	for _, transaction := range transactions {
+		found := false
+		for i, currency := range remainingCurrencies {
+			if transaction.Currency == currency {
+				remainingCurrencies = append(remainingCurrencies[:i], remainingCurrencies[i+1:]...)
+				found = true
+				break
+			}
+		}
+		assert.True(t, found, "unexpected currency: %s", transaction.Currency)
+	}
+
+	assert.Empty(t, remainingCurrencies, "not all currencies were found in transactions")
 }
 
 // TestGetByID_Success tests retrieving an existing transaction
@@ -92,27 +123,55 @@ func TestGetByID_Success(t *testing.T) {
 
 // TestGetByID_NotFound tests retrieving a non-existent transaction
 func TestGetByID_NotFound(t *testing.T) {
-	t.Skip("Implement after setting up test database")
+	db := setupTestDB(t)
+	defer cleanupTestDB(t)
+	repo := NewPostgresTransactionRepository(db)
 
-	// Try to get a transaction with non-existent UUID
-	// Should return sql.ErrNoRows or custom not found error
-}
+	userID, err := repo.GetByID(context.Background(), "550e8400-e29b-41d4-a716-446655440000")
 
-// TestGetByID_InvalidUUID tests retrieving with malformed UUID
-func TestGetByID_InvalidUUID(t *testing.T) {
-	t.Skip("Implement after setting up test database")
-
-	// Pass invalid UUID format
-	// Should return validation error
+	require.Error(t, err)
+	assert.Equal(t, "no rows in result set", err.Error())
+	assert.Nil(t, userID)
 }
 
 // TestListByUser_Success tests listing transactions for a user
 func TestListByUser_Success(t *testing.T) {
-	t.Skip("Implement after setting up test database")
+	db := setupTestDB(t)
+	defer cleanupTestDB(t)
+	repo := NewPostgresTransactionRepository(db)
 
-	// Create multiple transactions for user123
-	// List them
-	// Verify count and order (newest first)
+	transactionsValues := []int{1445, 495999, 2312, 10050, 20000, 30000, 1233}
+	userID := "user123"
+	currency := "usd"
+
+	for _, amount := range transactionsValues {
+		_, err := repo.Create(context.Background(), models.TransactionRequest{
+			UserID:   userID,
+			Amount:   amount,
+			Currency: currency,
+		})
+		require.NoError(t, err)
+	}
+
+	transactions, err := repo.ListByUser(context.Background(), userID, &currency, 10, 0)
+	require.NoError(t, err)
+	assert.Equal(t, len(transactionsValues), len(transactions))
+	// Verify transactions are ordered by timestamp DESC (newest first)
+	for i := 0; i < len(transactions)-1; i++ {
+		assert.True(t, transactions[i].Timestamp.After(transactions[i+1].Timestamp) ||
+			transactions[i].Timestamp.Equal(transactions[i+1].Timestamp),
+			"transactions should be ordered by timestamp DESC")
+	}
+
+	// Verify all expected amounts are present (order doesn't matter for amounts)
+	actualAmounts := make(map[int]bool)
+	for _, transaction := range transactions {
+		actualAmounts[transaction.Amount] = true
+	}
+
+	for _, expectedAmount := range transactionsValues {
+		assert.True(t, actualAmounts[expectedAmount], "expected amount %d not found", expectedAmount)
+	}
 }
 
 // TestListByUser_WithCurrencyFilter tests listing with currency filter
