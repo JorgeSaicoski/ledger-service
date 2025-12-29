@@ -144,14 +144,7 @@ func TestListByUser_Success(t *testing.T) {
 	userID := "user123"
 	currency := "usd"
 
-	for _, amount := range transactionsValues {
-		_, err := repo.Create(context.Background(), models.TransactionRequest{
-			UserID:   userID,
-			Amount:   amount,
-			Currency: currency,
-		})
-		require.NoError(t, err)
-	}
+	createTransactions(t, repo, userID, transactionsValues, []string{currency})
 
 	transactions, err := repo.ListByUser(context.Background(), userID, &currency, 10, 0)
 	require.NoError(t, err)
@@ -176,11 +169,32 @@ func TestListByUser_Success(t *testing.T) {
 
 // TestListByUser_WithCurrencyFilter tests listing with currency filter
 func TestListByUser_WithCurrencyFilter(t *testing.T) {
-	t.Skip("Implement after setting up test database")
+	db := setupTestDB(t)
+	defer cleanupTestDB(t)
+	repo := NewPostgresTransactionRepository(db)
 
-	// Create transactions in USD and BRL
-	// Filter by USD only
-	// Verify only USD transactions returned
+	transactionsValues := []int{1445, 495999, 2312, 10050, 20000, 30000, 1233}
+	userID := "user123"
+	currencyBrl := "brl"
+	currencyUsd := "usd"
+
+	// Create transactions alternating between USD and BRL
+	createTransactions(t, repo, userID, transactionsValues, []string{currencyUsd, currencyBrl})
+
+	transactionsBRL, err := repo.ListByUser(context.Background(), userID, &currencyBrl, 10, 0)
+	require.NoError(t, err)
+	for _, transaction := range transactionsBRL {
+		assert.Equal(t, currencyBrl, transaction.Currency)
+	}
+
+	transactionsUSD, err := repo.ListByUser(context.Background(), userID, &currencyUsd, 10, 0)
+	require.NoError(t, err)
+	for _, transaction := range transactionsUSD {
+		assert.Equal(t, currencyUsd, transaction.Currency)
+		for _, transactionBRL := range transactionsBRL {
+			assert.NotEqual(t, transaction.ID, transactionBRL.ID)
+		}
+	}
 }
 
 // TestListByUser_WithPagination tests pagination parameters
@@ -286,5 +300,28 @@ func cleanupTestDB(t *testing.T) {
 	t.Helper()
 	if testDB != nil {
 		testDB.Close()
+	}
+}
+
+// createTransactions is a helper function to create multiple transactions for testing
+// If currencies is empty, defaults to "usd"
+// If currencies has one element, all transactions use that currency
+// If currencies has multiple elements, transactions cycle through them
+func createTransactions(t *testing.T, repo *PostgresTransactionRepository, userID string, amounts []int, currencies []string) {
+	t.Helper()
+
+	// Default to USD if no currency specified
+	if len(currencies) == 0 {
+		currencies = []string{"usd"}
+	}
+
+	for i, amount := range amounts {
+		currency := currencies[i%len(currencies)]
+		_, err := repo.Create(context.Background(), models.TransactionRequest{
+			UserID:   userID,
+			Amount:   amount,
+			Currency: currency,
+		})
+		require.NoError(t, err)
 	}
 }
