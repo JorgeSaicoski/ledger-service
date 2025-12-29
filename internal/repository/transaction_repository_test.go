@@ -199,75 +199,44 @@ func TestListByUser_WithCurrencyFilter(t *testing.T) {
 
 // TestListByUser_WithPagination tests pagination parameters
 func TestListByUser_WithPagination(t *testing.T) {
-	t.Skip("Implement after setting up test database")
+	db := setupTestDB(t)
+	defer cleanupTestDB(t)
+	repo := NewPostgresTransactionRepository(db)
 
-	// Create 5 transactions
-	// Request with limit=2, offset=0 -> should get first 2
-	// Request with limit=2, offset=2 -> should get next 2
-}
+	transactionsValues := []int{1445, 495999, 2312, 10050, 20000, 30000, 1233}
+	userID := "user123"
+	currency := "usd"
 
-// TestListByUser_OrderByTimestampDesc tests ordering
-func TestListByUser_OrderByTimestampDesc(t *testing.T) {
-	t.Skip("Implement after setting up test database")
+	createTransactions(t, repo, userID, transactionsValues, []string{currency})
 
-	// Create transactions with delays to ensure different timestamps
-	// Verify newest comes first
+	transactions, err := repo.ListByUser(context.Background(), userID, &currency, 10, 0)
+	require.NoError(t, err)
+
+	firstPage, err := repo.ListByUser(context.Background(), userID, &currency, 2, 0)
+	require.NoError(t, err)
+	assert.Equal(t, 2, len(firstPage))
+	assert.Equal(t, transactions[0].Amount, firstPage[0].Amount)
+	assert.Equal(t, transactions[1].ID, firstPage[1].ID)
+
+	secondPage, err := repo.ListByUser(context.Background(), userID, &currency, 2, 2)
+	require.NoError(t, err)
+	assert.Equal(t, 2, len(secondPage))
+	assert.Equal(t, transactions[2].Amount, secondPage[0].Amount)
+	assert.Equal(t, transactions[3].ID, secondPage[1].ID)
+
 }
 
 // TestListByUser_EmptyResult tests listing for user with no transactions
 func TestListByUser_EmptyResult(t *testing.T) {
-	t.Skip("Implement after setting up test database")
+	db := setupTestDB(t)
+	defer cleanupTestDB(t)
+	repo := NewPostgresTransactionRepository(db)
 
-	// List transactions for non-existent user
-	// Should return empty array, not error
-}
+	userID := "user123"
 
-// TestGetBalance_SingleCurrency tests balance calculation
-func TestGetBalance_SingleCurrency(t *testing.T) {
-	t.Skip("Implement after setting up test database")
-
-	// Create transactions: +100, -30, +50
-	// Balance should be 120
-}
-
-// TestGetBalance_NegativeBalance tests negative balance
-func TestGetBalance_NegativeBalance(t *testing.T) {
-	t.Skip("Implement after setting up test database")
-
-	// Create transactions: -50, -25
-	// Balance should be -75
-}
-
-// TestGetBalance_IntegerPrecision tests integer calculation accuracy
-func TestGetBalance_IntegerPrecision(t *testing.T) {
-	t.Skip("Implement after setting up test database")
-
-	// Create transactions with integer amounts: 9999, 2576, -1050 (representing $99.99, $25.76, -$10.50 in cents)
-	// Verify precise calculation: 11525 (representing $115.25)
-}
-
-// TestGetBalance_NoTransactions tests balance with no transactions
-func TestGetBalance_NoTransactions(t *testing.T) {
-	t.Skip("Implement after setting up test database")
-
-	// Get balance for user with no transactions
-	// Should return 0, not error
-}
-
-// TestGetAllBalances_MultipleCurrencies tests multi-currency balances
-func TestGetAllBalances_MultipleCurrencies(t *testing.T) {
-	t.Skip("Implement after setting up test database")
-
-	// Create transactions in USD, BRL, loyalty_points
-	// Verify balances returned for all three currencies
-}
-
-// TestGetAllBalances_EmptyResult tests all balances with no transactions
-func TestGetAllBalances_EmptyResult(t *testing.T) {
-	t.Skip("Implement after setting up test database")
-
-	// Get all balances for user with no transactions
-	// Should return empty array, not error
+	transactions, err := repo.ListByUser(context.Background(), userID, nil, 10, 0)
+	require.NoError(t, err)
+	assert.Empty(t, transactions)
 }
 
 // setupTestDB creates a test database instance and clears existing data
