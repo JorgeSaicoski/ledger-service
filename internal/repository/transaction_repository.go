@@ -56,7 +56,7 @@ func (r *PostgresTransactionRepository) GetByID(ctx context.Context, id string) 
 	return &transaction, nil
 }
 
-// ListByUser retrieves all transactions for a user with optional currency filter
+// ListByUser retrieves all transactions for a user with an optional currency filter
 func (r *PostgresTransactionRepository) ListByUser(ctx context.Context, userID string, currency *string, limit, offset int) ([]models.Transaction, error) {
 	query := `
 	  SELECT id, user_id, amount, currency, timestamp
