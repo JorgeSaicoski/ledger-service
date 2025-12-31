@@ -1,4 +1,4 @@
-module github.com/bardockgaucho/ledger-service
+module github.com/JorgeSaicoski/ledger-service
 
 go 1.23.0
 
