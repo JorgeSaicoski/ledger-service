@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/bardockgaucho/ledger-service/internal/models"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -127,11 +128,11 @@ func TestGetByID_NotFound(t *testing.T) {
 	defer cleanupTestDB(t)
 	repo := NewPostgresTransactionRepository(db)
 
-	userID, err := repo.GetByID(context.Background(), "550e8400-e29b-41d4-a716-446655440000")
+	transaction, err := repo.GetByID(context.Background(), "550e8400-e29b-41d4-a716-446655440000")
 
 	require.Error(t, err)
-	assert.Equal(t, "no rows in result set", err.Error())
-	assert.Nil(t, userID)
+	assert.ErrorIs(t, err, pgx.ErrNoRows)
+	assert.Nil(t, transaction)
 }
 
 // TestListByUser_Success tests listing transactions for a user
@@ -173,7 +174,7 @@ func TestListByUser_WithCurrencyFilter(t *testing.T) {
 	defer cleanupTestDB(t)
 	repo := NewPostgresTransactionRepository(db)
 
-	transactionsValues := []int{1445, 495999, 2312, 10050, 20000, 30000, 1233}
+	transactionsValues := []int{1445, 495999, -2312, 10050, 20000, 30000, 1233, -456}
 	userID := "user123"
 	currencyBrl := "brl"
 	currencyUsd := "usd"
@@ -186,15 +187,14 @@ func TestListByUser_WithCurrencyFilter(t *testing.T) {
 	for _, transaction := range transactionsBRL {
 		assert.Equal(t, currencyBrl, transaction.Currency)
 	}
+	assert.Equal(t, len(transactionsValues)/2, len(transactionsBRL))
 
 	transactionsUSD, err := repo.ListByUser(context.Background(), userID, &currencyUsd, 10, 0)
 	require.NoError(t, err)
 	for _, transaction := range transactionsUSD {
 		assert.Equal(t, currencyUsd, transaction.Currency)
-		for _, transactionBRL := range transactionsBRL {
-			assert.NotEqual(t, transaction.ID, transactionBRL.ID)
-		}
 	}
+	assert.Equal(t, len(transactionsValues)/2, len(transactionsUSD))
 }
 
 // TestListByUser_WithPagination tests pagination parameters
@@ -216,12 +216,16 @@ func TestListByUser_WithPagination(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(firstPage))
 	assert.Equal(t, transactions[0].Amount, firstPage[0].Amount)
+	assert.Equal(t, transactions[1].Amount, firstPage[1].Amount)
+	assert.Equal(t, transactions[0].ID, firstPage[0].ID)
 	assert.Equal(t, transactions[1].ID, firstPage[1].ID)
 
 	secondPage, err := repo.ListByUser(context.Background(), userID, &currency, 2, 2)
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(secondPage))
 	assert.Equal(t, transactions[2].Amount, secondPage[0].Amount)
+	assert.Equal(t, transactions[3].Amount, secondPage[1].Amount)
+	assert.Equal(t, transactions[2].ID, secondPage[0].ID)
 	assert.Equal(t, transactions[3].ID, secondPage[1].ID)
 
 }
