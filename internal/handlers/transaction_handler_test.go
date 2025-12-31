@@ -1,73 +1,63 @@
 package handlers
 
 import (
-	"context"
+	"encoding/json"
+	"net/http/httptest"
+	"strings"
 	"testing"
 
+	"github.com/JorgeSaicoski/ledger-service/internal/handlers/mocks"
 	"github.com/JorgeSaicoski/ledger-service/internal/models"
-	"github.com/stretchr/testify/mock"
+	"github.com/JorgeSaicoski/ledger-service/internal/validator"
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
-// MockTransactionRepository is a mock implementation of TransactionRepository
-type MockTransactionRepository struct {
-	mock.Mock
-}
-
-func (m *MockTransactionRepository) Create(ctx context.Context, req models.TransactionRequest) (*models.Transaction, error) {
-	args := m.Called(ctx, req)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*models.Transaction), args.Error(1)
-}
-
-func (m *MockTransactionRepository) GetByID(ctx context.Context, id string) (*models.Transaction, error) {
-	args := m.Called(ctx, id)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*models.Transaction), args.Error(1)
-}
-
-func (m *MockTransactionRepository) ListByUser(ctx context.Context, userID string, currency *string, limit, offset int) ([]models.Transaction, error) {
-	args := m.Called(ctx, userID, currency, limit, offset)
-	return args.Get(0).([]models.Transaction), args.Error(1)
-}
+//go:generate mockgen -destination=mocks/mock_transaction_repository.go -package=mocks github.com/JorgeSaicoski/ledger-service/internal/repository TransactionRepository
 
 func TestCreateTransaction_Success(t *testing.T) {
-	t.Skip("Implement after handler is complete")
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	// mockRepo := new(MockTransactionRepository)
-	// validator := validator.NewTransactionValidator()
-	// handler := NewTransactionHandler(mockRepo, validator)
+	mockRepo := mocks.NewMockTransactionRepository(ctrl)
+	validator := validator.NewTransactionValidator()
+	handler := NewTransactionHandler(mockRepo, validator)
 
-	// reqBody := models.TransactionRequest{
-	// 	UserID:   "user123",
-	// 	Amount:   100.50,
-	// 	Currency: "usd",
-	// }
+	jsonBody := `{"user_id": "user123", "amount": 10050, "currency": "usd"}`
 
-	// expectedTransaction := &models.Transaction{
-	// 	ID:        "a1b2c3d4-e5f6-4890-abcd-ef1234567890",
-	// 	UserID:    reqBody.UserID,
-	// 	Amount:    reqBody.Amount,
-	// 	Currency:  reqBody.Currency,
-	// 	Timestamp: time.Now(),
-	// }
+	// Create request
+	req := httptest.NewRequest("POST", "/transactions", strings.NewReader(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
 
-	// mockRepo.On("Create", mock.Anything, reqBody).Return(expectedTransaction, nil)
+	// Create response recorder
+	w := httptest.NewRecorder()
 
-	// body, _ := json.Marshal(reqBody)
-	// req := httptest.NewRequest(http.MethodPost, "/transactions", bytes.NewReader(body))
-	// req.Header.Set("Content-Type", "application/json")
-	// rec := httptest.NewRecorder()
+	// Expected Request Model
+	expectedReq := models.Transaction{
+		UserID:   "user123",
+		Amount:   10050,
+		Currency: "usd",
+	}
 
-	// handler.CreateTransaction(rec, req)
+	// Mock repository Create to return transaction ID
+	expectedTransactionID := "transaction-123"
+	mockRepo.EXPECT().
+		Create(gomock.Any(), expectedReq).
+		Return(expectedTransactionID, nil)
 
-	// assert.Equal(t, http.StatusCreated, rec.Code)
-	// var response models.Transaction
-	// json.NewDecoder(rec.Body).Decode(&response)
-	// assert.Equal(t, expectedTransaction.ID, response.ID)
+	// Make request
+	handler.CreateTransaction(w, req)
+
+	// Verify response
+	if w.Code != 201 {
+		t.Errorf("Expected status code 201, got %d", w.Code)
+	}
+	assert.Equal(t, expectedTransactionID, w.Body.String())
+
+	err := json.NewDecoder(w.Body).Decode(&expectedTransactionID)
+	assert.NoError(t, err, "Expected transaction ID to be returned in response body")
+	assert.Equal(t, expectedTransactionID, w.Body.String())
+
 }
 
 func TestCreateTransaction_MissingUserID(t *testing.T) {
