@@ -81,22 +81,14 @@ func TestCreate_DifferentCurrencies(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, len(testCurrencies), len(transactions))
 
-	remainingCurrencies := make([]string, len(testCurrencies))
-	copy(remainingCurrencies, testCurrencies)
-
+	foundCurrencies := make(map[string]bool, len(testCurrencies))
 	for _, transaction := range transactions {
-		found := false
-		for i, currency := range remainingCurrencies {
-			if transaction.Currency == currency {
-				remainingCurrencies = append(remainingCurrencies[:i], remainingCurrencies[i+1:]...)
-				found = true
-				break
-			}
-		}
-		assert.True(t, found, "unexpected currency: %s", transaction.Currency)
+		foundCurrencies[transaction.Currency] = true
 	}
 
-	assert.Empty(t, remainingCurrencies, "not all currencies were found in transactions")
+	for _, currency := range testCurrencies {
+		assert.True(t, foundCurrencies[currency], "expected currency not found in transactions: %s", currency)
+	}
 }
 
 // TestGetByID_Success tests retrieving an existing transaction
