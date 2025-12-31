@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/bardockgaucho/ledger-service/internal/repository"
+	"github.com/JorgeSaicoski/ledger-service/internal/repository"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 

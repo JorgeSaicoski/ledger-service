@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/bardockgaucho/ledger-service/internal/models"
+	"github.com/JorgeSaicoski/ledger-service/internal/models"
 	"github.com/stretchr/testify/mock"
 )
 

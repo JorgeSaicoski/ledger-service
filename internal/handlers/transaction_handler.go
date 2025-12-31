@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/bardockgaucho/ledger-service/internal/models"
-	"github.com/bardockgaucho/ledger-service/internal/repository"
-	"github.com/bardockgaucho/ledger-service/internal/validator"
+	"github.com/JorgeSaicoski/ledger-service/internal/models"
+	"github.com/JorgeSaicoski/ledger-service/internal/repository"
+	"github.com/JorgeSaicoski/ledger-service/internal/validator"
 )
 
 // TransactionHandler handles HTTP requests for transactions

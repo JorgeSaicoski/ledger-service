@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/bardockgaucho/ledger-service/internal/models"
+	"github.com/JorgeSaicoski/ledger-service/internal/models"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
