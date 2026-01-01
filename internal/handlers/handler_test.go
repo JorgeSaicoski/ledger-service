@@ -58,8 +58,24 @@ func TestCreateTransaction_Success(t *testing.T) {
 }
 
 func TestCreateTransaction_MissingUserID(t *testing.T) {
-	t.Skip("Implement after handler is complete")
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
+	mockRepo := mocks.NewMockTransactionRepository(ctrl)
+	mockValidator := mocks.NewMockValidator(ctrl)
+	handler := NewTransactionHandler(mockRepo, mockValidator)
+
+	jsonBody := `{"amount": 10050, "currency": "usd"}`
+
+	req := httptest.NewRequest("POST", "/transactions", strings.NewReader(jsonBody))
+
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+
+	handler.CreateTransaction(w, req)
+
+	assert.Equal(t, 400, w.Code)
 	// Test that missing user_id returns 400
 }
 
