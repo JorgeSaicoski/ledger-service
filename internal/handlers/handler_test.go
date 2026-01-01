@@ -6,22 +6,19 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/JorgeSaicoski/ledger-service/internal/handlers/mocks"
 	"github.com/JorgeSaicoski/ledger-service/internal/models"
-	"github.com/JorgeSaicoski/ledger-service/internal/validator"
+	"github.com/JorgeSaicoski/ledger-service/mocks"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
-
-//go:generate mockgen -destination=mocks/mock_transaction_repository.go -package=mocks github.com/JorgeSaicoski/ledger-service/internal/repository TransactionRepository
 
 func TestCreateTransaction_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockTransactionRepository(ctrl)
-	validator := validator.NewTransactionValidator()
-	handler := NewTransactionHandler(mockRepo, validator)
+	mockValidator := mocks.NewMockValidator(ctrl)
+	handler := NewTransactionHandler(mockRepo, mockValidator)
 
 	jsonBody := `{"user_id": "user123", "amount": 10050, "currency": "usd"}`
 

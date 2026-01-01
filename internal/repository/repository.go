@@ -1,5 +1,7 @@
 package repository
 
+//go:generate mockgen -destination=../../mocks/mock_repository.go -package=mocks github.com/JorgeSaicoski/ledger-service/internal/repository TransactionRepository
+
 import (
 	"context"
 	"fmt"
@@ -9,14 +11,14 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// TransactionRepository defines the interface for transaction data operations
-type TransactionRepository interface {
+// Repository defines the interface for transaction data operations
+type Repository interface {
 	Create(ctx context.Context, req models.TransactionRequest) (string, error)
 	GetByID(ctx context.Context, id string) (*models.Transaction, error)
 	ListByUser(ctx context.Context, userID string, currency *string, limit, offset int) ([]models.Transaction, error)
 }
 
-// PostgresTransactionRepository implements TransactionRepository using PostgreSQL
+// PostgresTransactionRepository implements Repository using PostgreSQL
 type PostgresTransactionRepository struct {
 	db *pgxpool.Pool
 }
