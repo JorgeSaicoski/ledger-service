@@ -8,6 +8,7 @@ import (
 
 	"github.com/JorgeSaicoski/ledger-service/internal/models"
 	"github.com/JorgeSaicoski/ledger-service/mocks"
+	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
@@ -76,93 +77,261 @@ func TestCreateTransaction_MissingUserID(t *testing.T) {
 	handler.CreateTransaction(w, req)
 
 	assert.Equal(t, 400, w.Code)
-	// Test that missing user_id returns 400
+	var errResp models.ErrorResponse
+	err := json.NewDecoder(w.Body).Decode(&errResp)
+	assert.NoError(t, err, "Expected error response to be decoded")
+	assert.Contains(t, errResp.Error, "user_id is required")
 }
 
 func TestCreateTransaction_MissingAmount(t *testing.T) {
-	t.Skip("Implement after handler is complete")
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	// Test that missing amount returns 400
+	mockRepo := mocks.NewMockTransactionRepository(ctrl)
+	mockValidator := mocks.NewMockValidator(ctrl)
+	handler := NewTransactionHandler(mockRepo, mockValidator)
+
+	jsonBody := `{"user_id": "user123", "currency": "usd"}`
+	req := httptest.NewRequest("POST", "/transactions", strings.NewReader(jsonBody))
+
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+
+	handler.CreateTransaction(w, req)
+
+	assert.Equal(t, 400, w.Code)
+	var errResp models.ErrorResponse
+	err := json.NewDecoder(w.Body).Decode(&errResp)
+	assert.NoError(t, err, "Expected error response to be decoded")
+	assert.Contains(t, errResp.Error, "amount is required")
+
 }
 
 func TestCreateTransaction_MissingCurrency(t *testing.T) {
-	t.Skip("Implement after handler is complete")
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	// Test that missing currency returns 400
+	mockRepo := mocks.NewMockTransactionRepository(ctrl)
+	mockValidator := mocks.NewMockValidator(ctrl)
+	handler := NewTransactionHandler(mockRepo, mockValidator)
+
+	jsonBody := `{"user_id": "user123", "amount": 10050}`
+	req := httptest.NewRequest("POST", "/transactions", strings.NewReader(jsonBody))
+
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+
+	handler.CreateTransaction(w, req)
+
+	assert.Equal(t, 400, w.Code)
+	var errResp models.ErrorResponse
+	err := json.NewDecoder(w.Body).Decode(&errResp)
+	assert.NoError(t, err, "Expected error response to be decoded")
+	assert.Contains(t, errResp.Error, "currency is required")
 }
 
 func TestCreateTransaction_InvalidJSON(t *testing.T) {
-	t.Skip("Implement after handler is complete")
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	// Test that invalid JSON returns 400
+	mockRepo := mocks.NewMockTransactionRepository(ctrl)
+	mockValidator := mocks.NewMockValidator(ctrl)
+	handler := NewTransactionHandler(mockRepo, mockValidator)
+
+	// Invalid JSON - missing closing brace
+	jsonBody := `{"user_id": "user123", "amount": 10050`
+
+	req := httptest.NewRequest("POST", "/transactions", strings.NewReader(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	handler.CreateTransaction(w, req)
+
+	assert.Equal(t, 400, w.Code)
 }
 
 func TestCreateTransaction_NegativeAmount(t *testing.T) {
-	t.Skip("Implement after handler is complete")
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	// Test that negative amounts are accepted
+	mockRepo := mocks.NewMockTransactionRepository(ctrl)
+	mockValidator := mocks.NewMockValidator(ctrl)
+	handler := NewTransactionHandler(mockRepo, mockValidator)
+
+	jsonBody := `{"user_id": "user123", "amount": 10050, "currency": "usd"}`
+
+	// Create request
+	req := httptest.NewRequest("POST", "/transactions", strings.NewReader(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+
+	// Create response recorder
+	w := httptest.NewRecorder()
+
+	// Expected Request Model
+	expectedReq := models.Transaction{
+		UserID:   "user123",
+		Amount:   -10050,
+		Currency: "usd",
+	}
+
+	// Mock repository Create to return transaction ID
+	expectedTransactionID := "transaction-123"
+	mockRepo.EXPECT().
+		Create(gomock.Any(), expectedReq).
+		Return(expectedTransactionID, nil)
+
+	// Make request
+	handler.CreateTransaction(w, req)
+
+	// Verify response
+	if w.Code != 201 {
+		t.Errorf("Expected status code 201, got %d", w.Code)
+	}
+	assert.Equal(t, expectedTransactionID, w.Body.String())
+
+	err := json.NewDecoder(w.Body).Decode(&expectedTransactionID)
+	assert.NoError(t, err, "Expected transaction ID to be returned in response body")
+	assert.Equal(t, expectedTransactionID, w.Body.String())
 }
 
 // Test GetTransaction endpoint
 
 func TestGetTransaction_Success(t *testing.T) {
-	t.Skip("Implement after handler is complete")
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	// Create mock transaction
+	mockRepo := mocks.NewMockTransactionRepository(ctrl)
+	mockValidator := mocks.NewMockValidator(ctrl)
+	handler := NewTransactionHandler(mockRepo, mockValidator)
+
+	transactionID := "transaction-123"
+
+	expectedTransaction := models.Transaction{
+		ID:       transactionID,
+		UserID:   "user123",
+		Amount:   10050,
+		Currency: "usd",
+	}
+
 	// Mock repository GetByID to return transaction
+	mockRepo.EXPECT().GetByID(gomock.Any(), transactionID).Return(expectedTransaction, nil)
+
 	// Make request
-	// Verify 200 response with correct data
+	req := httptest.NewRequest("GET", "/transactions/"+transactionID, nil)
+	w := httptest.NewRecorder()
+	handler.GetTransaction(w, req)
+
+	// Verify response
+	assert.Equal(t, 200, w.Code)
+
+	// Verify transaction returned in the response body
+	var actualTransaction models.Transaction
+	err := json.NewDecoder(w.Body).Decode(&actualTransaction)
+	assert.NoError(t, err, "Expected transaction to be returned in response body")
+	assert.Equal(t, expectedTransaction, actualTransaction)
+
 }
 
 func TestGetTransaction_NotFound(t *testing.T) {
-	t.Skip("Implement after handler is complete")
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockTransactionRepository(ctrl)
+	mockValidator := mocks.NewMockValidator(ctrl)
+	handler := NewTransactionHandler(mockRepo, mockValidator)
+
+	transactionID := "transaction-123"
 
 	// Mock repository GetByID to return error
-	// Make request
-	// Verify 404 response
-}
+	mockRepo.EXPECT().GetByID(gomock.Any(), transactionID).Return(nil, pgx.ErrNoRows)
 
-func TestGetTransaction_InvalidUUID(t *testing.T) {
-	t.Skip("Implement after handler is complete")
+	req := httptest.NewRequest("GET", "/transactions/"+transactionID, nil)
+	w := httptest.NewRecorder()
+	handler.GetTransaction(w, req)
 
-	// Make request with invalid UUID
-	// Verify 400 response
+	assert.Equal(t, 404, w.Code)
+
+	// Verify error response returned
+	var errResp models.ErrorResponse
+	err := json.NewDecoder(w.Body).Decode(&errResp)
+	assert.NoError(t, err, "Expected error response to be decoded")
+	assert.Equal(t, "Transaction not found", errResp.Error)
+
 }
 
 // Test ListTransactions endpoint
 
 func TestListTransactions_ByUser(t *testing.T) {
-	t.Skip("Implement after handler is complete")
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	// Mock repository to return transactions
-	// Make request with user_id param
-	// Verify 200 response with transactions array
-}
+	mockRepo := mocks.NewMockTransactionRepository(ctrl)
+	mockValidator := mocks.NewMockValidator(ctrl)
+	handler := NewTransactionHandler(mockRepo, mockValidator)
 
-func TestListTransactions_ByUserAndCurrency(t *testing.T) {
-	t.Skip("Implement after handler is complete")
+	expectedTransactions := []models.Transaction{
+		{ID: "transaction-123", UserID: "user123", Amount: 10050, Currency: "usd"},
+		{ID: "transaction-456", UserID: "user123", Amount: -10050, Currency: "usd"},
+		{ID: "transaction-789", UserID: "user123", Amount: 10050, Currency: "eur"},
+		{ID: "transaction-012", UserID: "user123", Amount: -10050, Currency: "eur"},
+		{ID: "transaction-345", UserID: "user456", Amount: 10050, Currency: "usd"},
+		{ID: "transaction-678", UserID: "user456", Amount: -10050, Currency: "usd"},
+		{ID: "transaction-901", UserID: "user456", Amount: 10050, Currency: "eur"},
+	}
 
-	// Mock repository to return filtered transactions
-	// Make request with user_id and currency params
-	// Verify correct filtering
+	mockRepo.EXPECT().ListByUser(gomock.Any(), "user123", nil, 10, 0).Return(expectedTransactions, nil)
+
+	req := httptest.NewRequest("GET", "/transactions?user_id=user123", nil)
+
+	w := httptest.NewRecorder()
+	handler.ListTransactions(w, req)
+
+	assert.Equal(t, 200, w.Code)
+
+	var actualTransactions []models.Transaction
+	err := json.NewDecoder(w.Body).Decode(&actualTransactions)
+	assert.NoError(t, err, "Expected transactions to be returned in response body")
+	assert.Equal(t, expectedTransactions, actualTransactions)
+
 }
 
 func TestListTransactions_MissingUserID(t *testing.T) {
-	t.Skip("Implement after handler is complete")
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockRepo := mocks.NewMockTransactionRepository(ctrl)
+	mockValidator := mocks.NewMockValidator(ctrl)
+	handler := NewTransactionHandler(mockRepo, mockValidator)
 
-	// Make request without user_id
-	// Verify 400 response
-}
+	mockRepo.EXPECT().ListByUser(gomock.Any(), "", nil, 10, 0).Return(nil, nil)
 
-func TestListTransactions_WithPagination(t *testing.T) {
-	t.Skip("Implement after handler is complete")
+	req := httptest.NewRequest("GET", "/transactions", nil)
+	w := httptest.NewRecorder()
+	handler.ListTransactions(w, req)
 
-	// Test limit and offset parameters
+	assert.Equal(t, 400, w.Code)
+	var errResp models.ErrorResponse
+	err := json.NewDecoder(w.Body).Decode(&errResp)
+	assert.NoError(t, err, "Expected error response to be decoded")
+	assert.Contains(t, errResp.Error, "user_id is required")
 }
 
 func TestListTransactions_EmptyResult(t *testing.T) {
-	t.Skip("Implement after handler is complete")
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockRepo := mocks.NewMockTransactionRepository(ctrl)
+	mockValidator := mocks.NewMockValidator(ctrl)
+	handler := NewTransactionHandler(mockRepo, mockValidator)
 
-	// Mock repository to return empty array
-	// Verify 200 response with empty transactions array
+	mockRepo.EXPECT().ListByUser(gomock.Any(), "user123", nil, 10, 0).Return([]models.Transaction{}, nil)
+
+	req := httptest.NewRequest("GET", "/transactions?user_id=user123", nil)
+	w := httptest.NewRecorder()
+	handler.ListTransactions(w, req)
+
+	assert.Equal(t, 200, w.Code)
+	var actualTransactions []models.Transaction
+	err := json.NewDecoder(w.Body).Decode(&actualTransactions)
+	assert.NoError(t, err, "Expected empty list of transactions")
+	assert.Empty(t, actualTransactions)
 }
