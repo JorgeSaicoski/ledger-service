@@ -10,6 +10,16 @@ import (
 	"github.com/JorgeSaicoski/ledger-service/internal/validator"
 )
 
+// Interface for transaction handlers
+
+type TransactionHandler interface {
+	CreateTransaction(w http.ResponseWriter, r *http.Request)
+	GetTransaction(w http.ResponseWriter, r *http.Request)
+	ListTransactions(w http.ResponseWriter, r *http.Request)
+}
+
+var _ TransactionHandler = (*Handler)(nil)
+
 // Handler handles HTTP requests for transactions
 type Handler struct {
 	repo      repository.Repository
@@ -26,9 +36,17 @@ func NewTransactionHandler(repo repository.Repository, validator validator.Valid
 
 // CreateTransaction handles POST /transactions
 func (h *Handler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
-	// TODO: implement this
-	w.WriteHeader(http.StatusNotImplemented)
-	json.NewEncoder(w).Encode(models.ErrorResponse{Error: "not implemented"})
+	// Get the request body and validate it
+	req := models.TransactionRequest{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if err := h.validator.ValidateTransactionRequest(req); err != nil {
+		h.writeError(w, http.StatusBadRequest, err.Error())
+	}
+
 }
 
 // GetTransaction handles GET /transactions/{id}
