@@ -47,6 +47,16 @@ func (h *Handler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 		h.writeError(w, http.StatusBadRequest, err.Error())
 	}
 
+	ctx := r.Context()
+
+	id, err := h.repo.Create(ctx, req)
+
+	if err != nil {
+		h.writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	h.writeJSON(w, http.StatusCreated, id)
 }
 
 // GetTransaction handles GET /transactions/{id}
