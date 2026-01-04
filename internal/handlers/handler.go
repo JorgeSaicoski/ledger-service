@@ -61,9 +61,22 @@ func (h *Handler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 
 // GetTransaction handles GET /transactions/{id}
 func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
-	// TODO: implement this
-	w.WriteHeader(http.StatusNotImplemented)
-	json.NewEncoder(w).Encode(models.ErrorResponse{Error: "not implemented"})
+	reqID := r.URL.Query().Get("id")
+	if reqID == "" {
+		h.writeError(w, http.StatusBadRequest, "missing transaction ID")
+		return
+	}
+
+	ctx := r.Context()
+
+	var transaction *models.Transaction
+	transaction, err := h.repo.GetByID(ctx, reqID)
+	if err != nil {
+		h.writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	h.writeJSON(w, http.StatusCreated, transaction)
 }
 
 // ListTransactions handles GET /transactions?user_id=X&currency=Y
@@ -77,10 +90,14 @@ func (h *Handler) ListTransactions(w http.ResponseWriter, r *http.Request) {
 
 // writeJSON writes a JSON response with the given status code
 func (h *Handler) writeJSON(w http.ResponseWriter, status int, data interface{}) {
-	// TODO: implement this
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(data)
 }
 
 // writeError writes an error response
 func (h *Handler) writeError(w http.ResponseWriter, status int, message string) {
-	// TODO: implement this
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(models.ErrorResponse{Error: message})
 }
