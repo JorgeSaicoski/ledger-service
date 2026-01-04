@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -31,14 +32,19 @@ func TestCreateTransaction_Success(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	// Expected Request Model
-	expectedReq := models.Transaction{
+	expectedReq := models.TransactionRequest{
 		UserID:   "user123",
 		Amount:   10050,
 		Currency: "usd",
 	}
 
-	// Mock repository Create to return transaction ID
 	expectedTransactionID := "transaction-123"
+
+	mockValidator.EXPECT().
+		ValidateTransactionRequest(expectedReq).
+		Return(nil)
+
+	// Expect repository Create call, match fields except CreatedAt
 	mockRepo.EXPECT().
 		Create(gomock.Any(), expectedReq).
 		Return(expectedTransactionID, nil)
@@ -47,14 +53,12 @@ func TestCreateTransaction_Success(t *testing.T) {
 	handler.CreateTransaction(w, req)
 
 	// Verify response
-	if w.Code != 201 {
-		t.Errorf("Expected status code 201, got %d", w.Code)
-	}
-	assert.Equal(t, expectedTransactionID, w.Body.String())
+	assert.Equal(t, http.StatusCreated, w.Code)
 
-	err := json.NewDecoder(w.Body).Decode(&expectedTransactionID)
+	var responseID string
+	err := json.NewDecoder(w.Body).Decode(&responseID)
 	assert.NoError(t, err, "Expected transaction ID to be returned in response body")
-	assert.Equal(t, expectedTransactionID, w.Body.String())
+	assert.Equal(t, expectedTransactionID, responseID)
 
 }
 
