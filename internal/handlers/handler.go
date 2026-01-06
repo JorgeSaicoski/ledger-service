@@ -9,6 +9,7 @@ import (
 	"github.com/JorgeSaicoski/ledger-service/internal/models"
 	"github.com/JorgeSaicoski/ledger-service/internal/repository"
 	"github.com/JorgeSaicoski/ledger-service/internal/validator"
+	"github.com/jackc/pgx/v5"
 )
 
 // Interface for transaction handlers
@@ -53,6 +54,7 @@ func (h *Handler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.validator.ValidateTransactionRequest(req); err != nil {
 		h.writeError(w, http.StatusBadRequest, err.Error())
+		return
 	}
 
 	ctx := r.Context()
@@ -80,11 +82,15 @@ func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
 	var transaction *models.Transaction
 	transaction, err := h.repo.GetByID(ctx, reqID)
 	if err != nil {
+		if err == pgx.ErrNoRows {
+			h.writeError(w, http.StatusNotFound, "Transaction not found")
+			return
+		}
 		h.writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	h.writeJSON(w, http.StatusCreated, transaction)
+	h.writeJSON(w, http.StatusOK, transaction)
 }
 
 // ListTransactions handles GET /transactions?user_id=X&currency=Y
