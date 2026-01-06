@@ -29,13 +29,6 @@ type Handler struct {
 	validator validator.Validator
 }
 
-type Filter struct {
-	UserID   string `json:"user_id"`
-	Currency string `json:"currency"`
-	Limit    int    `json:"limit"`
-	Offset   int    `json:"offset"`
-}
-
 // NewTransactionHandler creates a new transaction handler
 func NewTransactionHandler(repo repository.Repository, validator validator.Validator) *Handler {
 	return &Handler{
