@@ -1,6 +1,6 @@
 package validator
 
-//go:generate mockgen -destination=../../mocks/mock_validator.go -package=mocks github.com/JorgeSaicoski/ledger-service/internal/validator TransactionValidator
+//go:generate mockgen -destination=../../mocks/mock_validator.go -package=mocks github.com/JorgeSaicoski/ledger-service/internal/validator Validator
 
 import (
 	"errors"

@@ -4,6 +4,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -56,7 +57,8 @@ func (h *Handler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 	id, err := h.repo.Create(ctx, req)
 
 	if err != nil {
-		h.writeError(w, http.StatusInternalServerError, err.Error())
+		log.Printf("Error creating transaction: %v", err)
+		h.writeError(w, http.StatusInternalServerError, "failed to create transaction")
 		return
 	}
 
@@ -73,14 +75,14 @@ func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
-	var transaction *models.Transaction
 	transaction, err := h.repo.GetByID(ctx, reqID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			h.writeError(w, http.StatusNotFound, "Transaction not found")
 			return
 		}
-		h.writeError(w, http.StatusInternalServerError, err.Error())
+		log.Printf("Error getting transaction: %v", err)
+		h.writeError(w, http.StatusInternalServerError, "failed to retrieve transaction")
 		return
 	}
 
@@ -109,6 +111,10 @@ func (h *Handler) ListTransactions(w http.ResponseWriter, r *http.Request) {
 			h.writeError(w, http.StatusBadRequest, "invalid limit")
 			return
 		}
+		if l < 0 {
+			h.writeError(w, http.StatusBadRequest, "limit must be non-negative")
+			return
+		}
 		limit = l
 	}
 
@@ -120,6 +126,10 @@ func (h *Handler) ListTransactions(w http.ResponseWriter, r *http.Request) {
 			h.writeError(w, http.StatusBadRequest, "invalid offset")
 			return
 		}
+		if o < 0 {
+			h.writeError(w, http.StatusBadRequest, "offset must be non-negative")
+			return
+		}
 		offset = o
 	}
 
@@ -128,7 +138,8 @@ func (h *Handler) ListTransactions(w http.ResponseWriter, r *http.Request) {
 	transactionList, err := h.repo.ListByUser(ctx, reqUserID, reqCurrency, limit, offset)
 
 	if err != nil {
-		h.writeError(w, http.StatusInternalServerError, err.Error())
+		log.Printf("Error listing transactions: %v", err)
+		h.writeError(w, http.StatusInternalServerError, "failed to retrieve transactions")
 		return
 	}
 
@@ -142,7 +153,7 @@ func (h *Handler) writeJSON(w http.ResponseWriter, status int, data interface{})
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	if err := json.NewEncoder(w).Encode(data); err != nil {
-		panic(err)
+		log.Printf("Error encoding JSON response: %v", err)
 	}
 }
 
@@ -152,7 +163,6 @@ func (h *Handler) writeError(w http.ResponseWriter, status int, message string) 
 	w.WriteHeader(status)
 
 	if err := json.NewEncoder(w).Encode(models.ErrorResponse{Error: message}); err != nil {
-		panic(err)
+		log.Printf("Error encoding error response: %v", err)
 	}
-
 }
