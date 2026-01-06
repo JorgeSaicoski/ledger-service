@@ -27,5 +27,3 @@ type TransactionListResponse struct {
 type ErrorResponse struct {
 	Error string `json:"error"`
 }
-
-// Introduce the code here for any additional model methods or validation

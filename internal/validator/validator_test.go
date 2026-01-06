@@ -3,7 +3,7 @@ package validator
 import (
 	"testing"
 
-	"github.com/bardockgaucho/ledger-service/internal/models"
+	"github.com/JorgeSaicoski/ledger-service/internal/models"
 	"github.com/stretchr/testify/assert"
 )
 

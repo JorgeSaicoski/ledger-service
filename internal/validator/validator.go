@@ -1,11 +1,19 @@
 package validator
 
+//go:generate mockgen -destination=../../mocks/mock_validator.go -package=mocks github.com/JorgeSaicoski/ledger-service/internal/validator Validator
+
 import (
 	"errors"
 	"regexp"
 
-	"github.com/bardockgaucho/ledger-service/internal/models"
+	"github.com/JorgeSaicoski/ledger-service/internal/models"
 )
+
+// Validator defines the interface for data validation
+type Validator interface {
+	ValidateTransactionRequest(req models.TransactionRequest) error
+	ValidateUUID(id string) error
+}
 
 var (
 	// ErrUserIDEmpty indicates user_id is empty
@@ -25,6 +33,9 @@ type TransactionValidator struct {
 	currencyRegex *regexp.Regexp
 	uuidRegex     *regexp.Regexp
 }
+
+// Ensure TransactionValidator implements Validator interface
+var _ Validator = (*TransactionValidator)(nil)
 
 // NewTransactionValidator creates a new validator instance
 func NewTransactionValidator() *TransactionValidator {
