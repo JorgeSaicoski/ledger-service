@@ -4,6 +4,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/JorgeSaicoski/ledger-service/internal/models"
 	"github.com/JorgeSaicoski/ledger-service/internal/repository"
@@ -24,6 +25,13 @@ var _ TransactionHandler = (*Handler)(nil)
 type Handler struct {
 	repo      repository.Repository
 	validator validator.Validator
+}
+
+type Filter struct {
+	UserID   string `json:"user_id"`
+	Currency string `json:"currency"`
+	Limit    int    `json:"limit"`
+	Offset   int    `json:"offset"`
 }
 
 // NewTransactionHandler creates a new transaction handler
@@ -81,9 +89,50 @@ func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
 
 // ListTransactions handles GET /transactions?user_id=X&currency=Y
 func (h *Handler) ListTransactions(w http.ResponseWriter, r *http.Request) {
-	// TODO: implement this
-	w.WriteHeader(http.StatusNotImplemented)
-	json.NewEncoder(w).Encode(models.ErrorResponse{Error: "not implemented"})
+	reqUserID := r.URL.Query().Get("user_id")
+	if reqUserID == "" {
+		h.writeError(w, http.StatusBadRequest, "missing user ID")
+		return
+	}
+
+	var reqCurrency *string
+
+	if currency := r.URL.Query().Get("currency"); currency != "" {
+		reqCurrency = &currency
+	}
+
+	strLimit := r.URL.Query().Get("limit")
+	limit := 0
+	if strLimit != "" {
+		l, err := strconv.Atoi(strLimit)
+		if err != nil {
+			h.writeError(w, http.StatusBadRequest, "invalid limit")
+			return
+		}
+		limit = l
+	}
+
+	strOffset := r.URL.Query().Get("offset")
+	offset := 0
+	if strOffset != "" {
+		o, err := strconv.Atoi(strOffset)
+		if err != nil {
+			h.writeError(w, http.StatusBadRequest, "invalid offset")
+			return
+		}
+		offset = o
+	}
+
+	ctx := r.Context()
+
+	transactionList, err := h.repo.ListByUser(ctx, reqUserID, reqCurrency, limit, offset)
+
+	if err != nil {
+		h.writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	h.writeJSON(w, http.StatusOK, transactionList)
 }
 
 // Helper functions
