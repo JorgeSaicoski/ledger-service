@@ -3,6 +3,7 @@ package handlers
 //go:generate mockgen -destination=../../mocks/mock_handler.go -package=mocks github.com/JorgeSaicoski/ledger-service/internal/handlers TransactionHandler
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -82,7 +83,7 @@ func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
 	var transaction *models.Transaction
 	transaction, err := h.repo.GetByID(ctx, reqID)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if errors.Is(err, pgx.ErrNoRows) {
 			h.writeError(w, http.StatusNotFound, "Transaction not found")
 			return
 		}
@@ -147,12 +148,18 @@ func (h *Handler) ListTransactions(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) writeJSON(w http.ResponseWriter, status int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(data)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		panic(err)
+	}
 }
 
 // writeError writes an error response
 func (h *Handler) writeError(w http.ResponseWriter, status int, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(models.ErrorResponse{Error: message})
+
+	if err := json.NewEncoder(w).Encode(models.ErrorResponse{Error: message}); err != nil {
+		panic(err)
+	}
+
 }
