@@ -70,7 +70,7 @@ func (h *Handler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 	h.writeJSON(w, http.StatusCreated, id)
 }
 
-// GetTransaction handles GET /transactions/{id}
+// GetTransaction handles GET /transactions?id=X
 func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
 	reqID := r.URL.Query().Get("id")
 	if reqID == "" {
