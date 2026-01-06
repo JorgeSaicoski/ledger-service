@@ -317,3 +317,39 @@ func TestListTransactions_EmptyResult(t *testing.T) {
 	assert.NoError(t, err, "Expected empty list of transactions")
 	assert.Empty(t, actualTransactions)
 }
+
+func TestListTransactions_NegativeLimit(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockRepo := mocks.NewMockTransactionRepository(ctrl)
+	mockValidator := mocks.NewMockValidator(ctrl)
+	handler := NewTransactionHandler(mockRepo, mockValidator)
+
+	req := httptest.NewRequest("GET", "/transactions?user_id=user123&limit=-1", nil)
+	w := httptest.NewRecorder()
+	handler.ListTransactions(w, req)
+
+	assert.Equal(t, 400, w.Code)
+	var errResponse models.ErrorResponse
+	err := json.NewDecoder(w.Body).Decode(&errResponse)
+	assert.NoError(t, err)
+	assert.Equal(t, "limit must be non-negative", errResponse.Error)
+}
+
+func TestListTransactions_NegativeOffset(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockRepo := mocks.NewMockTransactionRepository(ctrl)
+	mockValidator := mocks.NewMockValidator(ctrl)
+	handler := NewTransactionHandler(mockRepo, mockValidator)
+
+	req := httptest.NewRequest("GET", "/transactions?user_id=user123&offset=-5", nil)
+	w := httptest.NewRecorder()
+	handler.ListTransactions(w, req)
+
+	assert.Equal(t, 400, w.Code)
+	var errResponse models.ErrorResponse
+	err := json.NewDecoder(w.Body).Decode(&errResponse)
+	assert.NoError(t, err)
+	assert.Equal(t, "offset must be non-negative", errResponse.Error)
+}
