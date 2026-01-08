@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/bardockgaucho/ledger-service/internal/handlers"
-	"github.com/bardockgaucho/ledger-service/internal/repository"
-	"github.com/bardockgaucho/ledger-service/internal/validator"
+	"github.com/JorgeSaicoski/ledger-service/internal/handlers"
+	"github.com/JorgeSaicoski/ledger-service/internal/repository"
+	"github.com/JorgeSaicoski/ledger-service/internal/validator"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
