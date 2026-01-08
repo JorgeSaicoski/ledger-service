@@ -29,6 +29,9 @@ start:
 	@echo "Starting all services using $(COMPOSE_CMD)..."
 	@$(COMPOSE_CMD) up -d
 
+# Alias for start
+up: start
+
 # Start only the database
 start-db:
 	@echo "Starting database using $(COMPOSE_CMD)..."
