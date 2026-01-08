@@ -12,7 +12,6 @@ CREATE TABLE IF NOT EXISTS transactions (
   timestamp TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Add constraints
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'amount_check') THEN
@@ -20,7 +19,9 @@ BEGIN
     END IF;
 END $$;
 
--- Create indexes
-CREATE INDEX IF NOT EXISTS idx_transactions_user_id ON transactions(user_id);
-CREATE INDEX IF NOT EXISTS idx_transactions_timestamp ON transactions(timestamp);
+CREATE INDEX IF NOT EXISTS idx_transactions_user_currency_time
+  ON transactions(user_id, currency, timestamp DESC);
+
+CREATE INDEX IF NOT EXISTS idx_transactions_user_time
+  ON transactions(user_id, timestamp DESC);
 
