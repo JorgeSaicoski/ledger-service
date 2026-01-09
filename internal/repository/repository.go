@@ -72,8 +72,19 @@ func (r *PostgresTransactionRepository) ListByUser(ctx context.Context, userID s
 		args = append(args, *currency)
 	}
 
-	query += ` ORDER BY timestamp DESC LIMIT $` + fmt.Sprintf("%d", len(args)+1) + ` OFFSET $` + fmt.Sprintf("%d", len(args)+2)
-	args = append(args, limit, offset)
+	query += ` ORDER BY timestamp DESC`
+
+	// Add LIMIT clause only if limit is specified (> 0)
+	if limit > 0 {
+		query += fmt.Sprintf(` LIMIT $%d`, len(args)+1)
+		args = append(args, limit)
+	}
+
+	// Add OFFSET clause only if offset is specified (> 0)
+	if offset > 0 {
+		query += fmt.Sprintf(` OFFSET $%d`, len(args)+1)
+		args = append(args, offset)
+	}
 
 	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
