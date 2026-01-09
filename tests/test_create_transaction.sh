@@ -73,7 +73,7 @@ test_create_transaction_success() {
         id=$(echo "$body" | jq -r '.' 2>/dev/null)
 
         # Check if ID is a valid UUID format
-        if [[ "$id" =~ ^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$ ]]; then
+        if [[ "$id" =~ ^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$ ]]; then
             print_test_result "Create transaction with valid data" "PASS"
             # Write transaction ID to file for use by other tests/scripts
             if [ -n "$TRANSACTION_ID_FILE" ]; then
@@ -164,7 +164,7 @@ test_create_transaction_negative_amount() {
         local id
         id=$(echo "$body" | jq -r '.' 2>/dev/null)
 
-        if [[ "$id" =~ ^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$ ]]; then
+        if [[ "$id" =~ ^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$ ]]; then
             print_test_result "Create transaction with negative amount" "PASS"
         else
             print_test_result "Create transaction with negative amount" "FAIL" "Invalid ID format"
@@ -194,7 +194,7 @@ test_create_transaction_different_currency() {
         local id
         id=$(echo "$body" | jq -r '.' 2>/dev/null)
 
-        if [[ "$id" =~ ^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$ ]]; then
+        if [[ "$id" =~ ^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$ ]]; then
             print_test_result "Create transaction with loyalty_points currency" "PASS"
         else
             print_test_result "Create transaction with loyalty_points currency" "FAIL" "Invalid ID format"
