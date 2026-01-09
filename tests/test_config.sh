@@ -12,10 +12,10 @@ RED='\033[0;31m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Test counters
-TESTS_RUN=0
-TESTS_PASSED=0
-TESTS_FAILED=0
+# Test counters (exported so they persist across multiple sourced scripts)
+export TESTS_RUN=${TESTS_RUN:-0}
+export TESTS_PASSED=${TESTS_PASSED:-0}
+export TESTS_FAILED=${TESTS_FAILED:-0}
 
 # Default transaction ID file (used to share created ID between test files)
 # Can be overridden with TRANSACTION_ID_FILE env var
