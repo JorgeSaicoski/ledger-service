@@ -15,7 +15,7 @@ test_get_transaction_by_id() {
     local create_response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
         -d '{
-            "user_id": "test_user_get",
+            "user_id": "550e8400-e29b-41d4-a716-446655440000",
             "amount": 25075,
             "currency": "usd"
         }')
@@ -28,10 +28,11 @@ test_get_transaction_by_id() {
         return
     fi
     
-    local transaction_id=$(get_json_field "$create_body" "id")
-    
-    # Now retrieve it
-    local response=$(curl -s -w "\n%{http_code}" -X GET "$BASE_URL/transactions/$transaction_id")
+    # Response is just the ID as a JSON string
+    local transaction_id=$(echo "$create_body" | jq -r '.' 2>/dev/null)
+
+    # Now retrieve it using query parameter
+    local response=$(curl -s -w "\n%{http_code}" -X GET "$BASE_URL/transactions?id=$transaction_id")
     local body=$(echo "$response" | sed '$d')
     local status=$(echo "$response" | tail -n1)
     
@@ -59,7 +60,7 @@ test_get_transaction_by_id() {
 # Test 2: Get transaction with non-existent ID (should return 404)
 test_get_transaction_not_found() {
     local fake_id="00000000-0000-0000-0000-000000000000"
-    local response=$(curl -s -w "\n%{http_code}" -X GET "$BASE_URL/transactions/$fake_id")
+    local response=$(curl -s -w "\n%{http_code}" -X GET "$BASE_URL/transactions?id=$fake_id")
     local status=$(echo "$response" | tail -n1)
     
     if check_status_code "$status" 404; then
@@ -72,7 +73,7 @@ test_get_transaction_not_found() {
 # Test 3: Get transaction with invalid UUID format (should return 400)
 test_get_transaction_invalid_uuid() {
     local invalid_id="not-a-valid-uuid"
-    local response=$(curl -s -w "\n%{http_code}" -X GET "$BASE_URL/transactions/$invalid_id")
+    local response=$(curl -s -w "\n%{http_code}" -X GET "$BASE_URL/transactions?id=$invalid_id")
     local status=$(echo "$response" | tail -n1)
     
     if check_status_code "$status" 400; then
@@ -88,22 +89,30 @@ test_get_transaction_data_integrity() {
     local create_response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/transactions" \
         -H "Content-Type: application/json" \
         -d '{
-            "user_id": "integrity_test",
+            "user_id": "550e8400-e29b-41d4-a716-446655440000",
             "amount": 9999,
             "currency": "brl"
         }')
     
     local create_body=$(echo "$create_response" | sed '$d')
-    local transaction_id=$(get_json_field "$create_body" "id")
-    
-    # Retrieve and verify
-    local response=$(curl -s -X GET "$BASE_URL/transactions/$transaction_id")
-    
+    local create_status=$(echo "$create_response" | tail -n1)
+
+    if ! check_status_code "$create_status" 201; then
+        print_test_result "Get transaction data integrity check" "FAIL" "Failed to create test transaction"
+        return
+    fi
+
+    # Response is just the ID as a JSON string
+    local transaction_id=$(echo "$create_body" | jq -r '.' 2>/dev/null)
+
+    # Retrieve and verify using query parameter
+    local response=$(curl -s -X GET "$BASE_URL/transactions?id=$transaction_id")
+
     local user_id=$(get_json_field "$response" "user_id")
     local amount=$(get_json_field "$response" "amount")
     local currency=$(get_json_field "$response" "currency")
     
-    if [ "$user_id" = "integrity_test" ] && \
+    if [ "$user_id" = "550e8400-e29b-41d4-a716-446655440000" ] && \
        [ "$amount" = "9999" ] && \
        [ "$currency" = "brl" ]; then
         print_test_result "Get transaction data integrity check" "PASS"

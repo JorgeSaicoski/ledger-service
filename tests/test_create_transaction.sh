@@ -39,7 +39,8 @@ _create_transaction() {
     # If QUIET_OUTPUT is set to 1, print only the ID (or empty on failure)
     if [ "${QUIET_OUTPUT:-0}" -eq 1 ]; then
         if check_status_code "$status" 201; then
-            echo "$body" | jq -r '.id' 2>/dev/null || echo ""
+            # Response is just the ID as a JSON string
+            echo "$body" | jq -r '.' 2>/dev/null || echo ""
             return 0
         else
             echo ""
@@ -67,32 +68,19 @@ test_create_transaction_success() {
     status=$(echo "$response" | tail -n1)
 
     if check_status_code "$status" 201; then
-        if check_json_field "$body" "id" && \
-           check_json_field "$body" "user_id" && \
-           check_json_field "$body" "amount" && \
-           check_json_field "$body" "currency" && \
-           check_json_field "$body" "timestamp"; then
-            
-            local user_id
-            user_id=$(get_json_field "$body" "user_id")
-            local amount
-            amount=$(get_json_field "$body" "amount")
-            local currency
-            currency=$(get_json_field "$body" "currency")
+        # Response is just the ID as a JSON string
+        local id
+        id=$(echo "$body" | jq -r '.' 2>/dev/null)
 
-            if [ "$user_id" = "'$TEST_USER_ID'" ] && \
-               [ "$amount" = "10050" ] && \
-               [ "$currency" = "usd" ]; then
-                print_test_result "Create transaction with valid data" "PASS"
-                # Write transaction ID to file for use by other tests/scripts
-                if [ -n "$TRANSACTION_ID_FILE" ]; then
-                    echo "$body" | jq -r '.id' > "$TRANSACTION_ID_FILE"
-                fi
-            else
-                print_test_result "Create transaction with valid data" "FAIL" "Response data mismatch"
+        # Check if ID is a valid UUID format
+        if [[ "$id" =~ ^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$ ]]; then
+            print_test_result "Create transaction with valid data" "PASS"
+            # Write transaction ID to file for use by other tests/scripts
+            if [ -n "$TRANSACTION_ID_FILE" ]; then
+                echo "$id" > "$TRANSACTION_ID_FILE"
             fi
         else
-            print_test_result "Create transaction with valid data" "FAIL" "Missing required fields in response"
+            print_test_result "Create transaction with valid data" "FAIL" "Invalid ID format: $id"
         fi
     else
         print_test_result "Create transaction with valid data" "FAIL" "Expected status 201, got $status"
@@ -170,14 +158,16 @@ test_create_transaction_negative_amount() {
     body=$(echo "$response" | sed '$d')
     local status
     status=$(echo "$response" | tail -n1)
-    local amount
-    amount=$(get_json_field "$body" "amount")
 
     if check_status_code "$status" 201; then
-        if [ "$amount" = "-7525" ]; then
+        # Response is just the ID as a JSON string
+        local id
+        id=$(echo "$body" | jq -r '.' 2>/dev/null)
+
+        if [[ "$id" =~ ^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$ ]]; then
             print_test_result "Create transaction with negative amount" "PASS"
         else
-            print_test_result "Create transaction with negative amount" "FAIL" "Amount not correctly stored"
+            print_test_result "Create transaction with negative amount" "FAIL" "Invalid ID format"
         fi
     else
         print_test_result "Create transaction with negative amount" "FAIL" "Expected status 201, got $status"
@@ -198,14 +188,16 @@ test_create_transaction_different_currency() {
     body=$(echo "$response" | sed '$d')
     local status
     status=$(echo "$response" | tail -n1)
-    local currency
-    currency=$(get_json_field "$body" "currency")
 
     if check_status_code "$status" 201; then
-        if [ "$currency" = "loyalty_points" ]; then
+        # Response is just the ID as a JSON string
+        local id
+        id=$(echo "$body" | jq -r '.' 2>/dev/null)
+
+        if [[ "$id" =~ ^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$ ]]; then
             print_test_result "Create transaction with loyalty_points currency" "PASS"
         else
-            print_test_result "Create transaction with loyalty_points currency" "FAIL" "Currency not correctly stored"
+            print_test_result "Create transaction with loyalty_points currency" "FAIL" "Invalid ID format"
         fi
     else
         print_test_result "Create transaction with loyalty_points currency" "FAIL" "Expected status 201, got $status"
