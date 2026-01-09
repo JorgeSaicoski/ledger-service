@@ -26,6 +26,8 @@ var (
 	ErrUserIDInvalid = errors.New("user_id must be a valid UUID")
 	// ErrUUIDInvalid indicates UUID format is invalid
 	ErrUUIDInvalid = errors.New("invalid UUID format")
+	// ErrAmountZero indicates amount is zero
+	ErrAmountZero = errors.New("amount cannot be zero")
 )
 
 // TransactionValidator handles validation of transaction data
@@ -49,8 +51,19 @@ func (v *TransactionValidator) ValidateTransactionRequest(req models.Transaction
 	if err := v.validateUserID(req.UserID); err != nil {
 		return err
 	}
+	if err := v.validateAmount(req.Amount); err != nil {
+		return err
+	}
 	if err := v.validateCurrency(req.Currency); err != nil {
 		return err
+	}
+	return nil
+}
+
+// validateAmount validates that amount is not zero
+func (v *TransactionValidator) validateAmount(amount int) error {
+	if amount == 0 {
+		return ErrAmountZero
 	}
 	return nil
 }

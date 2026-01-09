@@ -73,6 +73,12 @@ func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validate UUID format
+	if err := h.validator.ValidateUUID(reqID); err != nil {
+		h.writeError(w, http.StatusBadRequest, "invalid transaction ID format")
+		return
+	}
+
 	ctx := r.Context()
 
 	transaction, err := h.repo.GetByID(ctx, reqID)
