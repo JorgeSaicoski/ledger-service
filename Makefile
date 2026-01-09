@@ -1,5 +1,9 @@
 .PHONY: help up down restart build logs test test-unit test-integration clean permissions update stop ps
 
+# Detect container runtime with full paths
+CONTAINER_CMD := $(shell command -v /usr/bin/podman 2> /dev/null || command -v /usr/local/bin/podman 2> /dev/null || command -v podman 2> /dev/null || command -v /usr/bin/docker 2> /dev/null || command -v docker 2> /dev/null)
+COMPOSE_CMD := $(shell command -v /usr/bin/podman-compose 2> /dev/null || command -v /usr/local/bin/podman-compose 2> /dev/null || command -v podman-compose 2> /dev/null || command -v /usr/bin/docker-compose 2> /dev/null || command -v docker-compose 2> /dev/null)
+
 # Default target
 help:
 	@echo "Available targets:"
@@ -20,32 +24,32 @@ help:
 
 # Start services
 up:
-	podman-compose up -d
+	$(COMPOSE_CMD) up -d
 	@echo "Services started. Waiting for database..."
 	@sleep 5
 	@echo "Services are ready!"
 
 # Stop services
 down:
-	podman-compose down
+	$(COMPOSE_CMD) down
 
 # Stop services without removing
 stop:
-	podman-compose stop
+	$(COMPOSE_CMD) stop
 
 # Restart services
 restart: down up
 
 # Build the application
 build:
-	podman-compose build
+	$(COMPOSE_CMD) build
 
 # Rebuild and start
 rebuild: down build up
 
 # View logs
 logs:
-	podman-compose logs -f
+	$(COMPOSE_CMD) logs -f
 
 # Run all tests
 test:
@@ -65,7 +69,7 @@ test-integration:
 
 # Clean up
 clean:
-	podman-compose down -v
+	$(COMPOSE_CMD) down -v
 	rm -f ledger-service
 	go clean
 
@@ -80,9 +84,9 @@ permissions:
 update:
 	go get -u ./...
 	go mod tidy
-	podman-compose pull
+	$(COMPOSE_CMD) pull
 	@echo "Dependencies updated"
 
 # List running containers
 ps:
-	podman-compose ps
+	$(COMPOSE_CMD) ps
