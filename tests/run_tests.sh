@@ -32,10 +32,12 @@ if [ -n "$EXPECTED_TEST_COUNT" ] && [ -n "$IMPLEMENTED_TEST_COUNT" ] && [ "$IMPL
 fi
 
 # Run all test suites
-bash "$SCRIPT_DIR/test_create_transaction.sh"
-bash "$SCRIPT_DIR/test_get_transaction.sh"
-bash "$SCRIPT_DIR/test_list_transactions.sh"
-bash "$SCRIPT_DIR/test_balance.sh"
+source "$SCRIPT_DIR/test_create_transaction.sh"
+source "$SCRIPT_DIR/test_get_transaction.sh"
+source "$SCRIPT_DIR/test_list_transactions.sh"
+if [ -f "$SCRIPT_DIR/test_balance.sh" ]; then
+    source "$SCRIPT_DIR/test_balance.sh"
+fi
 
 # Print final summary
 print_summary

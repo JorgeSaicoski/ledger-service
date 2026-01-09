@@ -73,6 +73,12 @@ func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validate UUID format
+	if err := h.validator.ValidateUUID(reqID); err != nil {
+		h.writeError(w, http.StatusBadRequest, "invalid transaction ID format")
+		return
+	}
+
 	ctx := r.Context()
 
 	transaction, err := h.repo.GetByID(ctx, reqID)
@@ -143,7 +149,12 @@ func (h *Handler) ListTransactions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.writeJSON(w, http.StatusOK, transactionList)
+	// Wrap response in TransactionListResponse
+	response := models.TransactionListResponse{
+		Transactions: transactionList,
+	}
+
+	h.writeJSON(w, http.StatusOK, response)
 }
 
 // Helper functions

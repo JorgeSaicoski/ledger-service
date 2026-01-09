@@ -42,8 +42,8 @@ _safe_jq_count() {
 
 # Test 1: List transactions by user_id
 test_list_transactions_by_user() {
-    local test_user="list_test_user_1"
-    
+    local test_user="11111111-1111-1111-1111-111111111111"
+
     # Create test transactions
     setup_test_transactions "$test_user" "usd" 3
     
@@ -69,8 +69,8 @@ test_list_transactions_by_user() {
 
 # Test 2: List transactions by user_id and currency
 test_list_transactions_by_user_and_currency() {
-    local test_user="list_test_user_2"
-    
+    local test_user="22222222-2222-2222-2222-222222222222"
+
     # Create transactions in different currencies
     setup_test_transactions "$test_user" "usd" 2
     setup_test_transactions "$test_user" "brl" 3
@@ -106,8 +106,8 @@ test_list_transactions_missing_user_id() {
 
 # Test 4: List transactions with pagination (limit)
 test_list_transactions_with_limit() {
-    local test_user="list_test_user_3"
-    
+    local test_user="33333333-3333-3333-3333-333333333333"
+
     # Create 5 transactions
     setup_test_transactions "$test_user" "usd" 5
     
@@ -129,8 +129,8 @@ test_list_transactions_with_limit() {
 
 # Test 5: List transactions with pagination (offset)
 test_list_transactions_with_offset() {
-    local test_user="list_test_user_4"
-    
+    local test_user="44444444-4444-4444-4444-444444444444"
+
     # Create 5 transactions
     setup_test_transactions "$test_user" "usd" 5
     
@@ -158,8 +158,8 @@ test_list_transactions_with_offset() {
 
 # Test 6: Verify transactions are ordered by timestamp descending
 test_list_transactions_order() {
-    local test_user="list_test_user_5"
-    
+    local test_user="55555555-5555-5555-5555-555555555555"
+
     # Create transactions with delays to ensure different timestamps
     for i in 1 2 3; do
         curl -s -X POST "$BASE_URL/transactions" \
@@ -192,8 +192,8 @@ test_list_transactions_order() {
 
 # Test 7: List transactions for user with no transactions
 test_list_transactions_empty() {
-    local test_user="nonexistent_user_123456789"
-    
+    local test_user="66666666-6666-6666-6666-666666666666"
+
     local response=$(curl -s -w "\n%{http_code}" -X GET "$BASE_URL/transactions?user_id=$test_user")
     local body=$(echo "$response" | sed '$d')
     local status=$(echo "$response" | tail -n1)

@@ -63,6 +63,20 @@ func TestValidateTransactionRequest_NegativeAmount(t *testing.T) {
 	assert.NoError(t, err, "Negative amounts should be valid")
 }
 
+// TestValidateTransactionRequest_ZeroAmount tests zero amount fails validation
+func TestValidateTransactionRequest_ZeroAmount(t *testing.T) {
+	validator := NewTransactionValidator()
+
+	req := models.TransactionRequest{
+		UserID:   "550e8400-e29b-41d4-a716-446655440000",
+		Amount:   0,
+		Currency: "usd",
+	}
+
+	err := validator.ValidateTransactionRequest(req)
+	assert.ErrorIs(t, err, ErrAmountZero, "Zero amount should fail validation")
+}
+
 // TestValidateUserID_Valid tests valid user IDs
 func TestValidateUserID_Valid(t *testing.T) {
 	validator := NewTransactionValidator()

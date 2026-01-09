@@ -12,7 +12,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:z
+      - ./migrations/001_create_transactions_table.sql:/docker-entrypoint-initdb.d/001_create_transactions_table.sql:z
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U test -d ledger_db"]
       interval: 5s
