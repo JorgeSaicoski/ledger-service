@@ -1,59 +1,88 @@
-# Makefile: database migration helpers
-.PHONY: migrate-db migrate-db-test start-db start-db-test
-# Detect container runtime with full paths
-CONTAINER_CMD := $(shell command -v /usr/bin/podman 2> /dev/null || command -v /usr/local/bin/podman 2> /dev/null || command -v podman 2> /dev/null || command -v /usr/bin/docker 2> /dev/null || command -v docker 2> /dev/null)
-COMPOSE_CMD := $(shell command -v /usr/bin/podman-compose 2> /dev/null || command -v /usr/local/bin/podman-compose 2> /dev/null || command -v podman-compose 2> /dev/null || command -v /usr/bin/docker-compose 2> /dev/null || command -v docker-compose 2> /dev/null)
-# Run migrations against production database (localhost:5432)
-migrate-db:
-@echo "Running migrations against production database..."
-@for f in migrations/*.sql; do \
-echo "Applying migration: $$f"; \
-$(CONTAINER_CMD) exec -i ledger-postgres psql -U test -d ledger_db -v ON_ERROR_STOP=1 < $$f; \
-done
-@echo "✓ Production database migration complete!"
-# Run migrations against test database (localhost:5432, different database)
-migrate-db-test:
-@echo "Running migrations against test database..."
-@for f in migrations/*.sql; do \
-echo "Applying migration: $$f"; \
-$(CONTAINER_CMD) exec -i ledger-postgres psql -U test -d ledger_db_test -v ON_ERROR_STOP=1 < $$f; \
-done
-@echo "✓ Test database migration complete!"
-# Clean build cache and rebuild from scratch
-clean:
-@echo "Cleaning up build cache..."
-@$(COMPOSE_CMD) down -v 2>/dev/null || true
-@$(CONTAINER_CMD) system prune -f 2>/dev/null || true
-@echo "✓ Clean complete!"
-# Start all services (database + application) - rebuild without cache
-start:
-@echo "Starting all services using $(COMPOSE_CMD)..."
-@$(COMPOSE_CMD) build --no-cache
-@$(COMPOSE_CMD) up -d
-# Alias for start
-up: start
-# Start only the database
-start-db:
-@echo "Starting database using $(COMPOSE_CMD)..."
-@$(COMPOSE_CMD) up -d postgres
-# Stop all services
+.PHONY: help up down restart build logs test test-unit test-integration clean permissions update stop ps
+
+# Default target
+help:
+	@echo "Available targets:"
+	@echo "  make up          - Start all services"
+	@echo "  make down        - Stop and remove all services"
+	@echo "  make stop        - Stop all services without removing"
+	@echo "  make restart     - Restart all services"
+	@echo "  make build       - Build the application"
+	@echo "  make rebuild     - Rebuild and start services"
+	@echo "  make logs        - View service logs"
+	@echo "  make test        - Run all tests"
+	@echo "  make test-unit   - Run unit tests"
+	@echo "  make test-integration - Run integration tests"
+	@echo "  make clean       - Clean up containers, volumes, and build artifacts"
+	@echo "  make permissions - Set correct permissions for scripts"
+	@echo "  make update      - Update dependencies"
+	@echo "  make ps          - List running containers"
+
+# Start services
+up:
+	podman-compose up -d
+	@echo "Services started. Waiting for database..."
+	@sleep 5
+	@echo "Services are ready!"
+
+# Stop services
+down:
+	podman-compose down
+
+# Stop services without removing
 stop:
-@echo "Stopping all services..."
-@$(COMPOSE_CMD) down
+	podman-compose stop
+
+# Restart services
+restart: down up
+
+# Build the application
+build:
+	podman-compose build
+
+# Rebuild and start
+rebuild: down build up
+
 # View logs
 logs:
-@$(COMPOSE_CMD) logs -f
-# Restart the application
-restart-app:
-@echo "Restarting ledger-service..."
-@$(COMPOSE_CMD) restart ledger-service
-# Run tests
+	podman-compose logs -f
+
+# Run all tests
 test:
-@echo "Running Go tests..."
-@go test -v -cover ./...
-# Run tests with coverage report
-test-coverage:
-@echo "Running tests with coverage..."
-@go test -v -coverprofile=coverage.out ./...
-@go tool cover -html=coverage.out -o coverage.html
-@echo "✓ Coverage report generated: coverage.html"
+	@chmod +x tests/run_tests.sh
+	@./tests/run_tests.sh
+
+# Run unit tests
+test-unit:
+	go test -v ./internal/...
+
+# Run integration tests
+test-integration:
+	@chmod +x tests/test_*.sh
+	@./tests/test_create_transaction.sh
+	@./tests/test_get_transaction.sh
+	@./tests/test_list_transactions.sh
+
+# Clean up
+clean:
+	podman-compose down -v
+	rm -f ledger-service
+	go clean
+
+# Set permissions
+permissions:
+	chmod +x scripts/setup.sh
+	chmod +x init-db.sh
+	chmod +x tests/*.sh
+	@echo "Permissions set for all scripts"
+
+# Update dependencies
+update:
+	go get -u ./...
+	go mod tidy
+	podman-compose pull
+	@echo "Dependencies updated"
+
+# List running containers
+ps:
+	podman-compose ps
